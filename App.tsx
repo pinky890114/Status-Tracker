@@ -1,18 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { signInAnonymously, signInWithCustomToken, onAuthStateChanged, User } from 'firebase/auth';
-import { collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc } from 'firebase/firestore';
 import { WifiOff, Lock } from 'lucide-react';
-import { auth, db, isMockConfig } from './services/firebase';
+import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { db, auth } from './src/firebase';
 import { APP_ID } from './constants';
 import { Commission, AdminUser, CommissionFormData } from './types';
 import ClientView from './components/ClientView';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
 
-const LOCAL_STORAGE_KEY = `commission_tracker_${APP_ID}_data`;
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: any;
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+    },
+    operationType,
+    path
+  }
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
   
   // Determine initial view based on URL path
   const [view, setView] = useState<'client' | 'admin'>(() => {
@@ -27,7 +56,7 @@ export default function App() {
   });
 
   const [commissions, setCommissions] = useState<Commission[]>([]);
-  const [isDemoMode, setIsDemoMode] = useState(isMockConfig);
+  const [isAcceptingCommissions, setIsAcceptingCommissions] = useState(true);
   
   // Admin Authentication State
   const [currentAdmin, setCurrentAdmin] = useState<AdminUser | null>(null);
@@ -50,72 +79,51 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // --- Initialize Firebase Auth ---
+  // --- Auth State ---
   useEffect(() => {
-    const initAuth = async () => {
-      if (isDemoMode) return; // Skip auth in demo mode
-
-      try {
-        const initialToken = (typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : (typeof window !== 'undefined' ? window.__initial_auth_token : undefined));
-        
-        if (initialToken) {
-          await signInWithCustomToken(auth, initialToken);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (error) {
-        console.warn("Auth init failed, switching to Demo Mode:", error);
-        setIsDemoMode(true);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setIsAuthReady(true);
+      if (currentUser && view === 'admin') {
+        setCurrentAdmin({
+          name: currentUser.displayName || '管理員',
+          ownerId: currentUser.uid
+        });
       }
-    };
-    initAuth();
-    
-    if (!isDemoMode) {
-      const unsubscribe = onAuthStateChanged(auth, (u) => {
-        setUser(u);
+    });
+    return () => unsubscribe();
+  }, [view]);
+
+  // --- Data Sync (Firestore) ---
+  useEffect(() => {
+    if (!isAuthReady) return;
+
+    // Listen to commissions
+    const q = query(collection(db, 'commissions'), orderBy('createdAt', 'desc'));
+    const unsubscribeCommissions = onSnapshot(q, (snapshot) => {
+      const data: Commission[] = [];
+      snapshot.forEach((doc) => {
+        data.push({ id: doc.id, ...doc.data() } as Commission);
       });
-      return () => unsubscribe();
-    }
-  }, [isDemoMode]);
-
-  // --- Data Sync (Firebase or LocalStorage) ---
-  useEffect(() => {
-    if (isDemoMode) {
-      // Load from LocalStorage
-      try {
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (saved) {
-          setCommissions(JSON.parse(saved));
-        }
-      } catch (e) {
-        console.error("Failed to load local data", e);
-      }
-      return;
-    }
-
-    if (!user) return;
-
-    // Firebase Sync
-    const q = collection(db, 'artifacts', APP_ID, 'public', 'data', 'commissions');
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Commission));
       setCommissions(data);
     }, (error) => {
-      console.error("Firestore Error:", error);
+      handleFirestoreError(error, OperationType.LIST, 'commissions');
     });
 
-    return () => unsubscribe();
-  }, [user, isDemoMode]);
+    // Listen to config
+    const unsubscribeConfig = onSnapshot(doc(db, 'config', 'main'), (docSnap) => {
+      if (docSnap.exists()) {
+        setIsAcceptingCommissions(docSnap.data().isAcceptingCommissions ?? true);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'config/main');
+    });
 
-  // Helper to sync local state to storage in Demo Mode
-  const syncLocal = (newData: Commission[]) => {
-    setCommissions(newData);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newData));
-    } catch (e) {
-      console.warn("LocalStorage write failed (security restriction):", e);
-    }
-  };
+    return () => {
+      unsubscribeCommissions();
+      unsubscribeConfig();
+    };
+  }, [isAuthReady]);
 
   // Helper for safe navigation
   const safePushState = (path: string) => {
@@ -132,32 +140,36 @@ export default function App() {
   const handleSwitchToAdmin = () => {
     safePushState('/admin');
     setView('admin');
+    if (user) {
+      setCurrentAdmin({
+        name: user.displayName || '管理員', 
+        ownerId: user.uid
+      });
+    }
   };
 
   const handleAdminLoginSuccess = (admin: AdminUser) => {
-    console.log("Admin logged in successfully:", admin);
-    // 1. Set admin data
     setCurrentAdmin(admin);
-    // 2. Force view to admin (in case it wasn't for some reason)
     setView('admin'); 
-    // 3. Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Switch to Client View (Logout)
-  const handleAdminLogout = () => {
-    setCurrentAdmin(null);
-    safePushState('/');
-    setView('client');
+  const handleAdminLogout = async () => {
+    try {
+      await signOut(auth);
+      setCurrentAdmin(null);
+      safePushState('/');
+      setView('client');
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
   const handleAddCommission = async (data: CommissionFormData) => {
     const targetOwnerId = currentAdmin?.ownerId || data.ownerId;
-    
-    // Automatically determine teacher name if not logged in as admin
     let targetOwnerName = currentAdmin?.name;
     if (!targetOwnerName) {
-      // If submitting from client form, decide name based on type
       targetOwnerName = data.type === 'FLOWING_SAND' ? '蘇沐' : '沈梨';
     }
 
@@ -175,74 +187,66 @@ export default function App() {
       createdAt: Date.now()
     };
 
-    if (isDemoMode) {
-      const newData = [...commissions.filter(c => c.id !== uniqueDocId), newCommission];
-      syncLocal(newData);
-      await new Promise(r => setTimeout(r, 500));
-      return;
-    }
-    
-    if (!auth.currentUser) {
-       try { await signInAnonymously(auth); } catch(e) { 
-         throw new Error("無法連接至資料庫，請刷新頁面或檢查網路");
-       }
-    }
-
     try {
-      await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'commissions', uniqueDocId), newCommission);
-    } catch (err) {
-      console.error("Add failed", err);
-      throw err;
+      await setDoc(doc(db, 'commissions', uniqueDocId), newCommission);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, `commissions/${uniqueDocId}`);
     }
   };
 
   const handleUpdateStatus = async (id: string, newStatus: number) => {
-    if (isDemoMode) {
-      const newData = commissions.map(c => c.id === id ? { ...c, status: newStatus, updatedAt: Date.now() } : c);
-      syncLocal(newData);
-      return;
-    }
-
-    if (!auth.currentUser) return;
     try {
-      await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'commissions', id), {
+      await updateDoc(doc(db, 'commissions', id), {
         status: newStatus,
         updatedAt: Date.now()
       });
-    } catch (err) {
-      console.error("Update failed", err);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `commissions/${id}`);
+    }
+  };
+
+  const handleUpdateProductionNote = async (id: string, note: string) => {
+    try {
+      await updateDoc(doc(db, 'commissions', id), {
+        productionNote: note,
+        updatedAt: Date.now()
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `commissions/${id}`);
+    }
+  };
+
+  const handleUpdateDeadline = async (id: string, deadline: string) => {
+    try {
+      await updateDoc(doc(db, 'commissions', id), {
+        deadline,
+        updatedAt: Date.now()
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `commissions/${id}`);
     }
   };
 
   const handleDelete = async (id: string) => {
-    console.log("Attempting to delete commission ID:", id); // Debug log
-
     if (!id) {
       alert("錯誤：無效的委託 ID");
       return;
     }
 
-    if (!window.confirm('確定要刪除這筆委託嗎？此動作無法復原。')) return;
-
-    if (isDemoMode) {
-      const newData = commissions.filter(c => c.id !== id);
-      syncLocal(newData);
-      return;
-    }
-
     try {
-      // Ensure auth exists before write operation
-      if (!auth.currentUser) {
-        console.log("No user, attempting anonymous login...");
-        await signInAnonymously(auth);
-      }
-      
-      console.log("Deleting document from Firestore...");
-      await deleteDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'commissions', id));
-      console.log("Delete successful");
-    } catch (err: any) {
-      console.error("Delete failed", err);
-      alert(`刪除失敗：${err.message || "請檢查網路連線或重新登入後再試"}`);
+      await deleteDoc(doc(db, 'commissions', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `commissions/${id}`);
+    }
+  };
+
+  const handleToggleAcceptingCommissions = async () => {
+    try {
+      await setDoc(doc(db, 'config', 'main'), {
+        isAcceptingCommissions: !isAcceptingCommissions
+      }, { merge: true });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, 'config/main');
     }
   };
 
@@ -253,66 +257,58 @@ export default function App() {
         <ClientView 
           commissions={commissions} 
           onRequestSubmit={handleAddCommission}
+          isAcceptingCommissions={isAcceptingCommissions}
         />
       );
     }
 
-    // Admin View Logic
-    // If currentAdmin is null, show login
     if (!currentAdmin) {
       return <AdminLogin onLogin={handleAdminLoginSuccess} />;
     }
 
-    // If currentAdmin is set, show dashboard
     return (
       <AdminDashboard 
-        key={currentAdmin.ownerId} // Force remount if admin changes
+        key={currentAdmin.ownerId}
         currentAdmin={currentAdmin}
         commissions={commissions}
+        isAcceptingCommissions={isAcceptingCommissions}
+        onToggleAccepting={handleToggleAcceptingCommissions}
         onLogout={handleAdminLogout}
         onAdd={handleAddCommission}
         onDelete={handleDelete}
         onUpdateStatus={handleUpdateStatus}
+        onUpdateProductionNote={handleUpdateProductionNote}
+        onUpdateDeadline={handleUpdateDeadline}
       />
     );
   };
 
   return (
-    // Changed bg-[#FFF9F9] to bg-[#F9F5F0] (Warm Vintage Cream)
-    // Changed text-gray-800 to text-[#5C4033] (Dark Coffee)
     <div className="min-h-screen bg-[#F9F5F0] text-[#5C4033] font-sans p-4 md:p-8">
-      {/* Demo Mode Banner */}
-      {isDemoMode && (
-        <div className="bg-[#A67C52] text-white px-4 py-2 text-center text-xs font-bold tracking-wider fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 shadow-md">
-          <WifiOff size={14} />
-          <span>示範模式 (資料僅儲存於本機)</span>
-        </div>
-      )}
-
-      <main className={`max-w-2xl mx-auto pb-20 ${isDemoMode ? 'pt-12' : 'pt-4'}`}>
+      <main className="max-w-2xl mx-auto pb-20 pt-4">
         {renderMainContent()}
       </main>
 
       <footer className="max-w-4xl mx-auto mt-16 text-center text-[#A67C52]/60 pb-10">
-        <div className="text-[10px] font-bold tracking-[0.2em] uppercase">
-          <p>© 2026 委託進度追蹤系統</p>
-          <div className="mt-2 flex justify-center items-center gap-2">
-              <span>POWERED BY REACT & {isDemoMode ? 'LOCAL STORAGE' : 'FIREBASE'}</span>
+          <div className="text-sm font-bold tracking-[0.2em] uppercase">
+            <p>委託進度追蹤系統</p>
+            <div className="mt-3 flex justify-center items-center gap-2 text-lg text-[#A67C52]">
+                <span>© Shen_LI</span>
+            </div>
           </div>
-        </div>
-        
-        {view === 'client' && (
-          <div className="mt-8 border-t border-[#D6C0B3]/50 pt-4 flex justify-center">
-            <button 
-              onClick={handleSwitchToAdmin}
-              className="group flex items-center gap-1.5 p-3 rounded-full hover:bg-[#F2EFE9] transition-all cursor-pointer"
-              title="前往後台"
-            >
-              <Lock size={12} className="text-[#D6C0B3] group-hover:text-[#A67C52] transition-colors" />
-            </button>
-          </div>
-        )}
-      </footer>
+          
+          {view === 'client' && (
+            <div className="mt-8 border-t border-[#D6C0B3]/50 pt-4 flex justify-center">
+              <button 
+                onClick={handleSwitchToAdmin}
+                className="group flex items-center gap-1.5 p-3 rounded-full hover:bg-[#F2EFE9] transition-all cursor-pointer"
+                title="前往後台"
+              >
+                <Lock size={16} className="text-[#D6C0B3] group-hover:text-[#A67C52] transition-colors" />
+              </button>
+            </div>
+          )}
+        </footer>
     </div>
   );
 }

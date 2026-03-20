@@ -8,11 +8,12 @@ import RequestForm from './RequestForm';
 interface ClientViewProps {
   commissions: Commission[];
   onRequestSubmit?: (data: CommissionFormData) => Promise<void>;
+  isAcceptingCommissions?: boolean;
 }
 
 type ViewMode = 'MENU' | 'TRACK' | 'REQUEST' | 'PORTFOLIO';
 
-const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit }) => {
+const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, isAcceptingCommissions = true }) => {
   const [mode, setMode] = useState<ViewMode>('MENU');
   
   // Search State
@@ -43,8 +44,8 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit })
           <div className="inline-flex items-center justify-center p-3 bg-[#E6DCC3] rounded-full mb-4 text-[#8B5E3C]">
             <Sparkles size={24} />
           </div>
-          <h2 className="text-3xl font-bold text-[#5C4033] mb-3 tracking-wide">歡迎光臨委託系統</h2>
-          <p className="text-[#8B5E3C] font-medium opacity-80">請選擇您要進行的操作</p>
+          <h2 className="text-3xl font-bold text-[#5C4033] mb-3 tracking-wide">沈梨今天工作了嗎</h2>
+          <p className="text-[#8B5E3C] font-medium opacity-80">請選擇要委託的項目</p>
         </div>
 
         <div className="max-w-md mx-auto space-y-4">
@@ -53,13 +54,14 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit })
           <div className="grid grid-cols-2 gap-4">
             {/* Button 1: Flowing Sand Commission */}
             <button 
-              onClick={() => startRequest('FLOWING_SAND')}
-              className="group relative w-full aspect-square rounded-2xl shadow-xl shadow-[#A67C52]/20 overflow-hidden transition-all hover:scale-[1.02] hover:shadow-2xl bg-[#F9F5F0]"
+              onClick={() => isAcceptingCommissions && startRequest('FLOWING_SAND')}
+              disabled={!isAcceptingCommissions}
+              className={`group relative w-full aspect-square rounded-2xl shadow-xl shadow-[#A67C52]/20 overflow-hidden transition-all bg-[#F9F5F0] ${isAcceptingCommissions ? 'hover:scale-[1.02] hover:shadow-2xl cursor-pointer' : 'opacity-50 cursor-not-allowed grayscale'}`}
             >
               <img 
                 src="https://i.ibb.co/6RMHtVP2/Gemini-Generated-Image-kk2g2dkk2g2dkk2g.png" 
                 alt="流麻委託" 
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 ${isAcceptingCommissions ? 'group-hover:scale-110' : ''}`}
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                   e.currentTarget.parentElement?.classList.add('bg-[#D6C0B3]');
@@ -70,17 +72,23 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit })
               <div className="absolute inset-0 flex items-center justify-center hidden group-[.bg-[#D6C0B3]]:flex flex-col">
                  <Sparkles size={32} className="text-[#5C4033] mb-2 opacity-50" />
               </div>
+              {!isAcceptingCommissions && (
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
+                  <span className="bg-white/90 text-[#5C4033] px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">暫停接單</span>
+                </div>
+              )}
             </button>
 
             {/* Button 2: Screenshot Commission */}
             <button 
-              onClick={() => startRequest('SCREENSHOT')}
-              className="group relative w-full aspect-square rounded-2xl shadow-xl shadow-[#A67C52]/20 overflow-hidden transition-all hover:scale-[1.02] hover:shadow-2xl bg-[#F9F5F0]"
+              onClick={() => isAcceptingCommissions && startRequest('SCREENSHOT')}
+              disabled={!isAcceptingCommissions}
+              className={`group relative w-full aspect-square rounded-2xl shadow-xl shadow-[#A67C52]/20 overflow-hidden transition-all bg-[#F9F5F0] ${isAcceptingCommissions ? 'hover:scale-[1.02] hover:shadow-2xl cursor-pointer' : 'opacity-50 cursor-not-allowed grayscale'}`}
             >
               <img 
                 src="https://i.ibb.co/Gf4YQHm2/Gemini-Generated-Image-kteefgkteefgktee.png" 
                 alt="截圖委託" 
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 ${isAcceptingCommissions ? 'group-hover:scale-110' : ''}`}
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                   e.currentTarget.parentElement?.classList.add('bg-[#D6C0B3]');
@@ -91,6 +99,11 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit })
               <div className="absolute inset-0 flex items-center justify-center hidden group-[.bg-[#D6C0B3]]:flex flex-col">
                  <Camera size={32} className="text-[#5C4033] mb-2 opacity-50" />
               </div>
+              {!isAcceptingCommissions && (
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
+                  <span className="bg-white/90 text-[#5C4033] px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">暫停接單</span>
+                </div>
+              )}
             </button>
           </div>
 
@@ -209,10 +222,10 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit })
 
               <ProgressBar type={result.type} currentStatus={result.status} />
 
-              <div className="bg-[#F9F5F0] p-4 rounded-xl border border-dashed border-[#D6C0B3] mt-2">
-                <p className="text-xs font-bold text-[#A67C52] mb-2 uppercase tracking-tighter">製作備註：</p>
-                <p className="text-[#5C4033] italic font-medium leading-relaxed">
-                  {result.note || "製作順利進行中，請耐心等候 ✨"}
+              <div className="bg-[#F9F5F0] p-5 rounded-xl border border-dashed border-[#D6C0B3] mt-4">
+                <p className="text-sm font-bold text-[#A67C52] mb-3 uppercase tracking-tighter">製作備註：</p>
+                <p className="text-base text-[#5C4033] italic font-medium leading-relaxed whitespace-pre-line">
+                  {result.productionNote || "申請審核中..."}
                 </p>
               </div>
             </div>

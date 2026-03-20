@@ -11,7 +11,7 @@ export interface AdminUser {
 }
 
 export interface Commission {
-  id: string; // Firestore Doc ID
+  id: string; // Database ID
   clientId: string; // Internal ID
   clientName: string;
   type: CommissionType;
@@ -21,10 +21,12 @@ export interface Commission {
   ownerName: string;
   updatedAt: number;
   createdAt?: number; // Creation timestamp
+  deadline?: string; // YYYY-MM-DD
   // New fields for requests
   contactInfo?: string; 
   description?: string;
   price?: number;
+  productionNote?: string; // Admin's private production note
 }
 
 export interface CommissionFormData {
@@ -33,21 +35,37 @@ export interface CommissionFormData {
   type: CommissionType;
   status: number;
   note: string;
+  deadline?: string; // YYYY-MM-DD
   // New fields
   ownerId?: string; // Target artist ID
   contactInfo?: string;
   description?: string;
   price?: number;
+  productionNote?: string;
+}
+
+export interface GalleryImage {
+  id: string;
+  url: string;
+  caption?: string;
+  createdAt: number;
+}
+
+export interface ProductGallery {
+  productId: string; // e.g., 'S_RAW', 'FLOWING_SAND_CARD'
+  images: GalleryImage[];
+}
+
+export interface AppSettings {
+  isAcceptingCommissions: boolean;
 }
 
 // Global variable declarations for the injected environment variables
 declare global {
-  var __firebase_config: string | object | undefined;
   var __app_id: string | undefined;
   var __initial_auth_token: string | undefined;
 
   interface Window {
-    __firebase_config?: string | object;
     __app_id?: string;
     __initial_auth_token?: string;
   }

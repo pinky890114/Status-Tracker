@@ -16,7 +16,8 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
     type: 'FLOWING_SAND',
     status: 0,
     note: '',
-    price: 0
+    price: 0,
+    deadline: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -131,7 +132,7 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
         </div>
         
         {/* New Price Field */}
-        <div className="col-span-2">
+        <div className="col-span-1">
            <label className="text-[10px] font-bold text-[#A67C52] block mb-1 uppercase tracking-widest">委託金額 ($)</label>
            <input 
              type="number"
@@ -143,6 +144,18 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
            />
         </div>
 
+        {/* Deadline Field */}
+        <div className="col-span-1">
+           <label className="text-[10px] font-bold text-[#A67C52] block mb-1 uppercase tracking-widest">截止日期</label>
+           <input 
+             type="date"
+             disabled={isSubmitting}
+             className="w-full border-2 border-[#E6DCC3] bg-[#F9F5F0] focus:bg-white focus:border-[#A67C52] rounded-xl p-2.5 text-sm transition-all outline-none font-medium disabled:opacity-50 text-[#5C4033]"
+             value={formData.deadline || ''}
+             onChange={e => setFormData({...formData, deadline: e.target.value})}
+           />
+        </div>
+
         <div className="col-span-2">
           <label className="text-[10px] font-bold text-[#A67C52] block mb-1 uppercase tracking-widest">備註訊息 (客戶可見)</label>
           <textarea 
@@ -151,6 +164,16 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
             rows={2}
             value={formData.note}
             onChange={e => setFormData({...formData, note: e.target.value})}
+          />
+        </div>
+        <div className="col-span-2">
+          <label className="text-[10px] font-bold text-[#A67C52] block mb-1 uppercase tracking-widest">製作備註</label>
+          <textarea 
+            disabled={isSubmitting}
+            className="w-full border-2 border-[#E6DCC3] bg-[#F9F5F0] focus:bg-white focus:border-[#A67C52] rounded-xl p-2.5 text-sm transition-all outline-none font-medium disabled:opacity-50 text-[#5C4033]"
+            rows={2}
+            value={formData.productionNote || ''}
+            onChange={e => setFormData({...formData, productionNote: e.target.value})}
           />
         </div>
         <div className="col-span-2 flex justify-end gap-3 mt-2">

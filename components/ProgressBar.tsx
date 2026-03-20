@@ -21,13 +21,13 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ type, currentStatus }) => {
           style={{ width: `${percentage}%` }}
         />
       </div>
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
         {steps.map((step, idx) => (
           <div key={idx} className={`text-center transition-opacity duration-500 ${idx <= currentStatus ? 'opacity-100' : 'opacity-40'}`}>
-            <div className={`w-6 h-6 mx-auto rounded-full mb-2 flex items-center justify-center ${idx <= currentStatus ? 'bg-[#BC4A3C] text-white' : 'bg-[#E6DCC3] text-[#F9F5F0]'}`}>
-              {idx < currentStatus ? <CheckCircle2 size={14} /> : <span className="text-[10px] font-bold">{idx + 1}</span>}
+            <div className={`w-12 h-12 mx-auto rounded-full mb-3 flex items-center justify-center shadow-sm ${idx <= currentStatus ? 'bg-[#BC4A3C] text-white' : 'bg-[#E6DCC3] text-[#F9F5F0]'}`}>
+              {idx < currentStatus ? <CheckCircle2 size={24} /> : <span className="text-xl font-bold">{idx + 1}</span>}
             </div>
-            <p className="text-[10px] font-medium text-[#5C4033] truncate leading-tight h-8">{step.label}</p>
+            <p className="text-sm sm:text-base font-bold text-[#5C4033] leading-tight break-words">{step.label}</p>
           </div>
         ))}
       </div>
