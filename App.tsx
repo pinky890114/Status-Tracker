@@ -228,7 +228,7 @@ export default function App() {
       if (botToken && chatId) {
         const typeLabel = data.type === 'FLOWING_SAND' ? '流麻' : '截圖';
         const message = `🎉 收到新的委託訂單！
-
+${data.title ? `📌 委託標題：${data.title}\n` : ''}
 👤 客戶暱稱：${data.clientName}
 🆔 委託 ID：${data.clientId}
 🎨 委託類型：${typeLabel}

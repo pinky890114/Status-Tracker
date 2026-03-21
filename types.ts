@@ -19,6 +19,7 @@ export interface Commission {
   note: string; // Admin's public note
   ownerId: string;
   ownerName: string;
+  title?: string;
   updatedAt: number;
   createdAt?: number; // Creation timestamp
   deadline?: string; // YYYY-MM-DD
@@ -33,6 +34,7 @@ export interface Commission {
 export interface CommissionFormData {
   clientId?: string; // Optional for public requests (auto-generated)
   clientName: string;
+  title?: string;
   type: CommissionType;
   status: number;
   note: string;

@@ -13,6 +13,7 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
   const [formData, setFormData] = useState<CommissionFormData>({
     clientId: '',
     clientName: '',
+    title: '',
     type: 'FLOWING_SAND',
     status: 0,
     note: '',
@@ -82,6 +83,17 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
       )}
 
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+        <div className="col-span-2">
+          <label className="text-[10px] font-bold text-[#A67C52] block mb-1 uppercase tracking-widest">委託標題 (例如: 雙人流麻/頭貼委託)</label>
+          <input 
+            required
+            disabled={isSubmitting}
+            className="w-full border-2 border-[#E6DCC3] bg-[#F9F5F0] focus:bg-white focus:border-[#A67C52] rounded-xl p-2.5 text-sm transition-all outline-none font-medium disabled:opacity-50 text-[#5C4033]"
+            placeholder="請輸入委託標題"
+            value={formData.title || ''}
+            onChange={e => setFormData({...formData, title: e.target.value})}
+          />
+        </div>
         <div className="col-span-1">
           <label className="text-[10px] font-bold text-[#A67C52] block mb-1 uppercase tracking-widest">內部管理 ID (不重複)</label>
           <input 

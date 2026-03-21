@@ -209,6 +209,11 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, i
                     {COMMISSION_TYPES[result.type]}
                   </span>
                   <h3 className="text-2xl font-bold text-[#5C4033] break-words">{result.clientName}</h3>
+                  {result.title && (
+                    <p className="text-sm font-bold text-[#8B5E3C] mt-1 bg-[#F9F5F0] px-2 py-0.5 rounded w-fit">
+                      {result.title}
+                    </p>
+                  )}
                 </div>
                 <div className="text-right flex flex-col items-end pl-2">
                   <p className="text-[10px] font-bold text-[#D6C0B3] uppercase tracking-widest mb-2">目前狀態</p>

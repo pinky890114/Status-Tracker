@@ -733,6 +733,17 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose, onSubmit, initialTyp
             <div className="space-y-4">
                <label className="text-xs font-bold text-[#A67C52] block uppercase tracking-widest px-1">Step 1. 您的基本資料</label>
                
+               <div className="mb-4">
+                  <label className="text-[10px] font-bold text-[#A67C52] mb-1 block">委託標題 (例如: 雙人流麻/頭貼委託)</label>
+                  <input 
+                    required
+                    className="w-full border-2 border-[#E6DCC3] bg-[#F9F5F0] focus:bg-white focus:border-[#BC4A3C] rounded-xl p-3 text-sm transition-all outline-none font-medium text-[#5C4033]"
+                    placeholder="請輸入委託標題"
+                    value={formData.title || ''}
+                    onChange={e => setFormData({...formData, title: e.target.value})}
+                  />
+               </div>
+
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div>
                     <label className="text-[10px] font-bold text-[#A67C52] mb-1 block">您的暱稱 (查詢用)</label>

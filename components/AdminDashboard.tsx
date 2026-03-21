@@ -272,6 +272,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <span className="bg-[#BC4A3C] text-white text-xs px-2.5 py-1 rounded-full font-bold">新申請</span>
                     )}
                   </div>
+                  {item.title && (
+                    <div className="text-sm font-bold text-[#8B5E3C] mt-1 bg-[#F9F5F0] px-2 py-0.5 rounded w-fit">
+                      {item.title}
+                    </div>
+                  )}
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-bold text-[#D6C0B3] uppercase tracking-widest mt-1">
                      <span>ID: {item.clientId}</span>
                      
