@@ -3,8 +3,8 @@ service firebase.storage {
   match /b/{bucket}/o {
     function isAdmin() {
       return request.auth != null && (
-        (firestore.exists(/databases/ai-studio-728790c4-7f92-4e1a-8996-42d308de34d9/documents/users/$(request.auth.uid)) &&
-         firestore.get(/databases/ai-studio-728790c4-7f92-4e1a-8996-42d308de34d9/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        (firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
         (request.auth.token.email == "Pinky890114@gmail.com" && request.auth.token.email_verified == true)
       );
     }

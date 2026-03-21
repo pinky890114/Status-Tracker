@@ -1,10 +1,10 @@
 {
-  "projectId": "commission-tracker-e6da0",
-  "appId": "1:859578190938:web:8cc61b370be0249f501c63",
-  "apiKey": "AIzaSyAgfzJAlhGowci25Q4ELjPbb_yz9b1SgKE",
-  "authDomain": "commission-tracker-e6da0.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-728790c4-7f92-4e1a-8996-42d308de34d9",
-  "storageBucket": "commission-tracker-e6da0.firebasestorage.app",
-  "messagingSenderId": "859578190938",
-  "measurementId": ""
+  "projectId": "shenli-tracker",
+  "appId": "1:175954651296:web:8dffe6838caf5f0bae41c5",
+  "apiKey": "AIzaSyANT28Cldwuc9pjuEO4bKyc6OiWXzM8hR0",
+  "authDomain": "shenli-tracker.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "shenli-tracker.firebasestorage.app",
+  "messagingSenderId": "175954651296",
+  "measurementId": "G-LL67FQSG1L"
 }

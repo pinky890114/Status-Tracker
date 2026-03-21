@@ -122,8 +122,9 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
-      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'client';
-      allow update: if isAdmin() && isValidUser(request.resource.data);
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && 
+                    (request.resource.data.role == 'client' || (request.resource.data.role == 'admin' && isAdmin()));
+      allow update: if (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role) || isAdmin();
       allow delete: if isAdmin();
     }
 
