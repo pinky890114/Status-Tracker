@@ -106,6 +106,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose, onSubmit, initialTyp
   const [formData, setFormData] = useState<CommissionFormData>({
     ownerId: 'Main_Artist',
     clientName: '',
+    title: '',
     contactInfo: '',
     type: isScreenshot ? 'SCREENSHOT' : 'FLOWING_SAND',
     status: 0,
@@ -201,8 +202,8 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose, onSubmit, initialTyp
     setError(null);
     
     // Validation
-    if (!formData.clientName.trim() || !formData.contactInfo?.trim()) {
-      setError("請填寫所有必填欄位 (您的暱稱、聯絡方式)");
+    if (!formData.clientName.trim() || !formData.contactInfo?.trim() || !formData.title?.trim()) {
+      setError("請填寫所有必填欄位 (委託標題、您的暱稱、聯絡方式)");
       return;
     }
 

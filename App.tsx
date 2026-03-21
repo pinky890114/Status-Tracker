@@ -226,6 +226,7 @@ export default function App() {
       const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
       
       if (botToken && chatId) {
+        console.log("Attempting to send Telegram notification...");
         const typeLabel = data.type === 'FLOWING_SAND' ? '流麻' : '截圖';
         const message = `🎉 收到新的委託訂單！
 ${data.title ? `📌 委託標題：${data.title}\n` : ''}
@@ -250,7 +251,18 @@ ${data.description || '無'}`;
             chat_id: chatId,
             text: message,
           }),
-        }).catch(err => console.error("Telegram notification failed:", err));
+        })
+        .then(res => {
+          if (!res.ok) {
+            return res.json().then(err => {
+              console.error("Telegram API error:", err);
+            });
+          }
+          console.log("Telegram notification sent successfully!");
+        })
+        .catch(err => console.error("Telegram fetch failed:", err));
+      } else {
+        console.warn("Telegram Bot Token or Chat ID is missing. Please set VITE_TELEGRAM_BOT_TOKEN and VITE_TELEGRAM_CHAT_ID in environment variables.");
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, `commissions/${uniqueDocId}`);
