@@ -90,7 +90,7 @@ export default function App() {
         // Sync user to Firestore
         try {
           const userDocRef = doc(db, 'users', currentUser.uid);
-          const role = currentUser.email === 'Pinky890114@gmail.com' ? 'admin' : 'client';
+          const role = currentUser.email?.toLowerCase() === 'pinky890114@gmail.com' ? 'admin' : 'client';
           
           await setDoc(userDocRef, {
             uid: currentUser.uid,
@@ -190,6 +190,11 @@ export default function App() {
     } catch (error) {
       console.error("Logout failed", error);
     }
+  };
+
+  const handleBackToClient = () => {
+    setView('client');
+    safePushState('/');
   };
 
   const handleAddCommission = async (data: CommissionFormData) => {
@@ -343,6 +348,7 @@ ${data.description || '無'}`;
         isAcceptingCommissions={isAcceptingCommissions}
         onToggleAccepting={handleToggleAcceptingCommissions}
         onLogout={handleAdminLogout}
+        onBackToClient={handleBackToClient}
         onAdd={handleAddCommission}
         onDelete={handleDelete}
         onUpdateStatus={handleUpdateStatus}

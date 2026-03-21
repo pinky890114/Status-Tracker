@@ -65,16 +65,18 @@ const GalleryViewer: React.FC<GalleryViewerProps> = ({ productId, productName, o
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {images.map((img) => (
-                <div key={img.id} className="group relative aspect-square rounded-2xl overflow-hidden bg-white shadow-sm border border-[#E6DCC3]">
-                  <img 
-                    src={img.url} 
-                    alt={img.caption || productName} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    referrerPolicy="no-referrer"
-                  />
+                <div key={img.id} className="group relative rounded-2xl overflow-hidden bg-white shadow-sm border border-[#E6DCC3] flex flex-col">
+                  <div className="relative w-full overflow-hidden bg-[#F2EFE9]">
+                    <img 
+                      src={img.url} 
+                      alt={img.caption || productName} 
+                      className="w-full h-auto max-h-[400px] object-contain transition-transform duration-500 group-hover:scale-105 mx-auto"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
                   {img.caption && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                      <p className="text-white text-sm font-medium">{img.caption}</p>
+                    <div className="p-4 bg-white border-t border-[#E6DCC3]">
+                      <p className="text-[#5C4033] text-sm font-medium">{img.caption}</p>
                     </div>
                   )}
                 </div>

@@ -12,6 +12,7 @@ interface AdminDashboardProps {
   isAcceptingCommissions: boolean;
   onToggleAccepting: () => void;
   onLogout: () => void;
+  onBackToClient: () => void;
   onAdd: (data: CommissionFormData) => Promise<void>;
   onDelete: (id: string) => void;
   onUpdateStatus: (id: string, newStatus: number) => void;
@@ -45,6 +46,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   isAcceptingCommissions,
   onToggleAccepting,
   onLogout, 
+  onBackToClient,
   onAdd, 
   onDelete, 
   onUpdateStatus,
@@ -117,11 +119,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {isAcceptingCommissions ? '接單中' : '暫停接單'}
           </button>
           <button 
-            onClick={onLogout}
-            className="flex items-center justify-center w-12 h-12 bg-[#F9F5F0] text-[#D6C0B3] rounded-xl hover:bg-[#E6DCC3] hover:text-[#8B5E3C] transition-all border border-[#E6DCC3] group"
+            onClick={onBackToClient}
+            className="flex items-center justify-center w-12 h-12 bg-[#F9F5F0] text-[#8B5E3C] rounded-xl hover:bg-[#E6DCC3] transition-all border border-[#E6DCC3] group"
             title="返回前台"
           >
-            <Lock size={20} className="group-hover:scale-110 transition-transform" />
+            <ExternalLink size={20} className="group-hover:scale-110 transition-transform" />
+          </button>
+          <button 
+            onClick={onLogout}
+            className="flex items-center justify-center w-12 h-12 bg-[#F9F5F0] text-[#D6C0B3] rounded-xl hover:bg-[#E6DCC3] hover:text-red-500 transition-all border border-[#E6DCC3] group"
+            title="登出"
+          >
+            <LogOut size={20} className="group-hover:scale-110 transition-transform" />
           </button>
           <button 
             onClick={() => { setActiveTab('commissions'); setIsAdding(true); }}

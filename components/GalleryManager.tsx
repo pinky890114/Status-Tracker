@@ -137,19 +137,23 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({ productId, productName 
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {images.map(img => (
-            <div key={img.id} className="group relative aspect-square rounded-xl overflow-hidden border border-[#E6DCC3]">
-              <img src={img.url} alt={img.caption || ''} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
-                <button 
-                  onClick={() => handleDelete(img)}
-                  className="self-end p-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  <Trash2 size={16} />
-                </button>
-                {img.caption && (
-                  <p className="text-white text-xs truncate bg-black/50 p-1 rounded">{img.caption}</p>
-                )}
+            <div key={img.id} className="group relative rounded-xl overflow-hidden border border-[#E6DCC3] bg-[#F9F5F0] flex flex-col">
+              <div className="relative w-full overflow-hidden">
+                <img src={img.url} alt={img.caption || ''} className="w-full h-auto max-h-[200px] object-contain mx-auto" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                  <button 
+                    onClick={() => handleDelete(img)}
+                    className="self-end p-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
+              {img.caption && (
+                <div className="p-2 bg-white border-t border-[#E6DCC3]">
+                  <p className="text-[#5C4033] text-[10px] truncate">{img.caption}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
