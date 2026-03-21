@@ -82,14 +82,32 @@ export default function App() {
 
   // --- Auth State ---
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       setIsAuthReady(true);
-      if (currentUser && view === 'admin') {
-        setCurrentAdmin({
-          name: currentUser.displayName || '管理員',
-          ownerId: currentUser.uid
-        });
+      
+      if (currentUser) {
+        // Sync user to Firestore
+        try {
+          const userDocRef = doc(db, 'users', currentUser.uid);
+          const role = currentUser.email === 'Pinky890114@gmail.com' ? 'admin' : 'client';
+          
+          await setDoc(userDocRef, {
+            uid: currentUser.uid,
+            email: currentUser.email,
+            name: currentUser.displayName || '使用者',
+            role: role
+          }, { merge: true });
+
+          if (view === 'admin') {
+            setCurrentAdmin({
+              name: currentUser.displayName || '管理員',
+              ownerId: currentUser.uid
+            });
+          }
+        } catch (error) {
+          console.error("User sync failed:", error);
+        }
       }
     });
     return () => unsubscribe();
