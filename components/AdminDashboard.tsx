@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Plus, LogOut, UserCircle, ClipboardList, Camera, Trash2, Mail, MessageSquare, Calendar, Image as ImageIcon, Save, Edit2, Lock, Power, PowerOff, Clock } from 'lucide-react';
+import { Plus, LogOut, UserCircle, ClipboardList, Camera, Trash2, Mail, MessageSquare, Calendar, Image as ImageIcon, Save, Edit2, Lock, Power, PowerOff, Clock, TrendingUp, ExternalLink } from 'lucide-react';
 import { AdminUser, Commission, CommissionFormData } from '../types';
 import { STEPS } from '../constants';
 import CommissionForm from './CommissionForm';
 import GalleryManager from './GalleryManager';
+import RevenueStats from './RevenueStats';
 
 interface AdminDashboardProps {
   currentAdmin: AdminUser;
@@ -16,6 +17,7 @@ interface AdminDashboardProps {
   onUpdateStatus: (id: string, newStatus: number) => void;
   onUpdateProductionNote: (id: string, note: string) => void;
   onUpdateDeadline?: (id: string, deadline: string) => void;
+  onUpdateDeliveryUrl?: (id: string, url: string) => void;
 }
 
 const GALLERY_PRODUCTS = [
@@ -47,10 +49,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDelete, 
   onUpdateStatus,
   onUpdateProductionNote,
-  onUpdateDeadline
+  onUpdateDeadline,
+  onUpdateDeliveryUrl
 }) => {
   const [isAdding, setIsAdding] = useState(false);
-  const [activeTab, setActiveTab] = useState<'commissions' | 'galleries'>('commissions');
+  const [activeTab, setActiveTab] = useState<'commissions' | 'galleries' | 'revenue'>('commissions');
   const [selectedGalleryId, setSelectedGalleryId] = useState<string>(GALLERY_PRODUCTS[0].id);
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'FLOWING_SAND' | 'SCREENSHOT'>('ALL');
   const [sortBy, setSortBy] = useState<'deadline' | 'createdAt'>('deadline');
@@ -58,6 +61,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [editingNoteText, setEditingNoteText] = useState<string>('');
   const [editingDeadlineId, setEditingDeadlineId] = useState<string | null>(null);
   const [editingDeadlineText, setEditingDeadlineText] = useState<string>('');
+  const [editingDeliveryId, setEditingDeliveryId] = useState<string | null>(null);
+  const [editingDeliveryUrl, setEditingDeliveryUrl] = useState<string>('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // For single-user mode, we show ALL commissions regardless of ownerId
@@ -128,10 +133,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 bg-white p-2 rounded-2xl border border-[#E6DCC3] shadow-sm">
+      <div className="flex gap-2 bg-white p-2 rounded-2xl border border-[#E6DCC3] shadow-sm overflow-x-auto custom-scrollbar">
         <button
           onClick={() => setActiveTab('commissions')}
-          className={`flex-1 py-3.5 rounded-xl font-bold text-base transition-colors flex items-center justify-center gap-2 ${
+          className={`flex-1 min-w-[120px] py-3.5 rounded-xl font-bold text-base transition-colors flex items-center justify-center gap-2 ${
             activeTab === 'commissions' 
               ? 'bg-[#F9F5F0] text-[#8B5E3C] shadow-sm' 
               : 'text-[#A67C52] hover:bg-[#F9F5F0]/50'
@@ -141,7 +146,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </button>
         <button
           onClick={() => setActiveTab('galleries')}
-          className={`flex-1 py-3.5 rounded-xl font-bold text-base transition-colors flex items-center justify-center gap-2 ${
+          className={`flex-1 min-w-[120px] py-3.5 rounded-xl font-bold text-base transition-colors flex items-center justify-center gap-2 ${
             activeTab === 'galleries' 
               ? 'bg-[#F9F5F0] text-[#8B5E3C] shadow-sm' 
               : 'text-[#A67C52] hover:bg-[#F9F5F0]/50'
@@ -149,9 +154,23 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         >
           <ImageIcon size={20} /> 作品集管理
         </button>
+        <button
+          onClick={() => setActiveTab('revenue')}
+          className={`flex-1 min-w-[120px] py-3.5 rounded-xl font-bold text-base transition-colors flex items-center justify-center gap-2 ${
+            activeTab === 'revenue' 
+              ? 'bg-[#F9F5F0] text-[#8B5E3C] shadow-sm' 
+              : 'text-[#A67C52] hover:bg-[#F9F5F0]/50'
+          }`}
+        >
+          <TrendingUp size={20} /> 營收統計
+        </button>
       </div>
 
-      {activeTab === 'commissions' ? (
+      {activeTab === 'revenue' && (
+        <RevenueStats commissions={commissions} />
+      )}
+
+      {activeTab === 'commissions' && (
         <>
           {isAdding && (
             <CommissionForm 
@@ -398,6 +417,70 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               )}
             </div>
 
+            {/* Delivery URL (Editable by Admin) */}
+            <div className="mb-4 bg-white p-4 rounded-xl border border-[#E6DCC3] shadow-sm">
+              <div className="flex justify-between items-center mb-3">
+                <p className="text-sm font-bold text-[#A67C52] uppercase tracking-widest flex items-center gap-1.5">
+                  <ExternalLink size={14} /> 交付檔案 (Google Drive 連結)
+                </p>
+                {editingDeliveryId === item.id ? (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setEditingDeliveryId(null)}
+                      className="text-sm font-bold text-[#D6C0B3] hover:text-[#A67C52]"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (onUpdateDeliveryUrl) {
+                          onUpdateDeliveryUrl(item.id, editingDeliveryUrl);
+                        }
+                        setEditingDeliveryId(null);
+                      }}
+                      className="text-sm font-bold text-white bg-[#BC4A3C] px-3 py-1.5 rounded hover:bg-[#A33E32] flex items-center gap-1"
+                    >
+                      <Save size={14} /> 儲存
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setEditingDeliveryId(item.id);
+                      setEditingDeliveryUrl(item.deliveryUrl || '');
+                    }}
+                    className="text-sm font-bold text-[#8B5E3C] hover:text-[#BC4A3C] flex items-center gap-1"
+                  >
+                    <Edit2 size={14} /> 編輯
+                  </button>
+                )}
+              </div>
+              {editingDeliveryId === item.id ? (
+                <input
+                  type="url"
+                  className="w-full border border-[#E6DCC3] bg-[#F9F5F0] focus:bg-white focus:border-[#A67C52] rounded-lg p-3 text-base transition-all outline-none font-medium text-[#5C4033]"
+                  value={editingDeliveryUrl}
+                  onChange={(e) => setEditingDeliveryUrl(e.target.value)}
+                  placeholder="貼上 Google Drive 連結..."
+                />
+              ) : (
+                <div className="flex items-center gap-2">
+                  {item.deliveryUrl ? (
+                    <a 
+                      href={item.deliveryUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-[#BC4A3C] font-bold hover:underline flex items-center gap-1 break-all"
+                    >
+                      <ExternalLink size={14} /> {item.deliveryUrl}
+                    </a>
+                  ) : (
+                    <span className="text-[#D6C0B3] italic">尚未交付檔案</span>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="flex flex-col gap-2">
               <div className="flex justify-between text-sm font-bold text-[#A67C52] mb-1 px-1 uppercase tracking-tighter">
                 <span>目前進度：{STEPS[item.type][item.status].label}</span>
@@ -443,7 +526,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
       </>
-      ) : (
+      )}
+      
+      {activeTab === 'galleries' && (
         <div className="space-y-6">
           <div className="flex flex-wrap gap-2">
             {GALLERY_PRODUCTS.map(product => (

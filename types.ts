@@ -27,6 +27,7 @@ export interface Commission {
   description?: string;
   price?: number;
   productionNote?: string; // Admin's private production note
+  deliveryUrl?: string; // Google Drive link for delivery
 }
 
 export interface CommissionFormData {
@@ -68,5 +69,14 @@ declare global {
   interface Window {
     __app_id?: string;
     __initial_auth_token?: string;
+  }
+
+  interface ImportMetaEnv {
+    readonly VITE_TELEGRAM_BOT_TOKEN: string;
+    readonly VITE_TELEGRAM_CHAT_ID: string;
+  }
+
+  interface ImportMeta {
+    readonly env: ImportMetaEnv;
   }
 }

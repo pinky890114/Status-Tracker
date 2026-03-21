@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: commissions
+    // Document ID: {ownerId}_{clientId}
+    // Fields:
+    //   - id: string (required, immutable)
+    //   - clientId: string (required, immutable)
+    //   - clientName: string (required)
+    //   - type: string (required, enum: FLOWING_SAND, SCREENSHOT)
+    //   - status: number (required)
+    //   - note: string (optional)
+    //   - ownerId: string (required, immutable)
+    //   - ownerName: string (required)
+    //   - updatedAt: number (required)
+    //   - createdAt: number (optional, immutable)
+    //   - deadline: string (optional)
+    //   - contactInfo: string (optional)
+    //   - description: string (optional)
+    //   - price: number (optional)
+    //   - productionNote: string (optional, admin only)
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - email: string (required, immutable)
+    //   - name: string (optional)
+    //   - role: string (required, enum: admin, client)
+    //
+    // Collection: gallery_{productId}
+    // Document ID: {imageId}
+    // Fields:
+    //   - id: string (required, immutable)
+    //   - url: string (required)
+    //   - caption: string (optional)
+    //   - createdAt: number (required, immutable)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "Pinky890114@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidCommission(data) {
+      return data.keys().hasAll(['id', 'clientName', 'type', 'status', 'ownerId', 'ownerName', 'updatedAt']) &&
+             data.id is string && data.id.size() < 100 &&
+             data.clientName is string && data.clientName.size() > 0 && data.clientName.size() < 100 &&
+             data.type in ['FLOWING_SAND', 'SCREENSHOT'] &&
+             data.status is number &&
+             data.ownerId is string && data.ownerId.size() < 100 &&
+             data.ownerName is string && data.ownerName.size() < 100 &&
+             data.updatedAt is number &&
+             (!('note' in data) || (data.note is string && data.note.size() < 1000)) &&
+             (!('deadline' in data) || (data.deadline is string && data.deadline.size() < 20)) &&
+             (!('contactInfo' in data) || (data.contactInfo is string && data.contactInfo.size() < 200)) &&
+             (!('description' in data) || (data.description is string && data.description.size() < 2000)) &&
+             (!('price' in data) || (data.price is number)) &&
+             (!('productionNote' in data) || (data.productionNote is string && data.productionNote.size() < 2000)) &&
+             (!('deliveryUrl' in data) || (data.deliveryUrl is string && data.deliveryUrl.size() < 1000));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string && data.uid == request.auth.uid &&
+             data.email is string && isValidEmail(data.email) &&
+             data.role in ['admin', 'client'] &&
+             (!('name' in data) || (data.name is string && data.name.size() < 100));
+    }
+
+    function isValidGalleryImage(data) {
+      return data.keys().hasAll(['id', 'url', 'createdAt']) &&
+             data.id is string && data.id.size() < 100 &&
+             data.url is string && isValidUrl(data.url) &&
+             data.createdAt is number &&
+             (!('caption' in data) || (data.caption is string && data.caption.size() < 500));
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /commissions/{commissionId} {
+      allow read: if true;
+      allow create: if isValidCommission(request.resource.data);
+      allow update: if isAdmin() && isValidCommission(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'client';
+      allow update: if isAdmin() && isValidUser(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /{collectionName}/{imageId} {
+      allow read: if collectionName.matches('gallery_.*');
+      allow write: if isAdmin() && collectionName.matches('gallery_.*') && isValidGalleryImage(request.resource.data);
+    }
+  }
+}

@@ -228,6 +228,23 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, i
                   {result.productionNote || "申請審核中..."}
                 </p>
               </div>
+
+              {result.deliveryUrl && (
+                <div className="mt-6">
+                  <a 
+                    href={result.deliveryUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#BC4A3C] hover:bg-[#A33E32] text-white py-4 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] font-bold shadow-lg shadow-[#BC4A3C]/20"
+                  >
+                    <ExternalLink size={20} />
+                    <span>點此領取完成檔案 (Google Drive)</span>
+                  </a>
+                  <p className="text-center text-[10px] text-[#A67C52] mt-3 font-bold opacity-60">
+                    檔案將保留一段時間，請盡快下載保存喔！
+                  </p>
+                </div>
+              )}
             </div>
           ))}
 
@@ -283,7 +300,7 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, i
             </a>
 
             <a 
-              href="https://www.instagram.com/sumu_quicksand_acrylic?igsh=Mng0c3JxZW9paHFu&utm_source=qr"
+              href="https://www.instagram.com/shenli_acrylic?igsh=Mng0c3JxZW9paHFu&utm_source=qr"
               target="_blank"
               rel="noopener noreferrer" 
               className="group bg-white p-6 rounded-2xl shadow-lg shadow-[#A67C52]/10 border border-[#E6DCC3] hover:border-[#BC4A3C] transition-all hover:-translate-y-1 flex items-center gap-5 relative overflow-hidden"
@@ -294,7 +311,7 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, i
                 <div className="flex-1">
                     <h3 className="text-xl font-bold text-[#5C4033] mb-1 group-hover:text-[#BC4A3C] transition-colors">流麻作品集</h3>
                     <p className="text-xs text-[#A67C52] font-medium opacity-80 flex items-center gap-1">
-                       Instagram @sumu_quicksand_acrylic
+                       Instagram @shenli_acrylic
                     </p>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-[#F9F5F0] flex items-center justify-center text-[#D6C0B3] group-hover:text-[#BC4A3C] group-hover:bg-[#FFF5F5] transition-all">

@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "Commission": {
+      "title": "Commission",
+      "description": "A commission request from a client",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clientId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "type": { "type": "string", "enum": ["FLOWING_SAND", "SCREENSHOT"] },
+        "status": { "type": "integer" },
+        "note": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "updatedAt": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "deadline": { "type": "string" },
+        "contactInfo": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "productionNote": { "type": "string" },
+        "deliveryUrl": { "type": "string" }
+      },
+      "required": ["id", "clientName", "type", "status", "ownerId", "ownerName", "updatedAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user of the system",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "client"] }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "GalleryImage": {
+      "title": "GalleryImage",
+      "description": "An image in a product gallery",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "url": { "type": "string" },
+        "caption": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "url", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/commissions/{commissionId}": {
+      "schema": "Commission",
+      "description": "Collection of all commissions"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and roles"
+    },
+    "/gallery_{productId}/{imageId}": {
+      "schema": "GalleryImage",
+      "description": "Galleries for different products"
+    }
+  }
+}

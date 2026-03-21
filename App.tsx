@@ -42,6 +42,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 export default function App() {
   const [user, setUser] = useState<any>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [globalError, setGlobalError] = useState<string | null>(null);
   
   // Determine initial view based on URL path
   const [view, setView] = useState<'client' | 'admin'>(() => {
@@ -106,8 +107,14 @@ export default function App() {
         data.push({ id: doc.id, ...doc.data() } as Commission);
       });
       setCommissions(data);
+      setGlobalError(null); // Clear error on success
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'commissions');
+      if (error.message.includes('insufficient permissions')) {
+        setGlobalError("權限不足：您的帳號沒有管理員權限。");
+      } else {
+        setGlobalError(`讀取資料失敗: ${error.message}`);
+      }
+      console.error('Firestore Error: ', error);
     });
 
     // Listen to config
@@ -116,7 +123,8 @@ export default function App() {
         setIsAcceptingCommissions(docSnap.data().isAcceptingCommissions ?? true);
       }
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'config/main');
+      // Config error is less critical but still log it
+      console.error('Config Error: ', error);
     });
 
     return () => {
@@ -189,6 +197,38 @@ export default function App() {
 
     try {
       await setDoc(doc(db, 'commissions', uniqueDocId), newCommission);
+      
+      // Send Telegram Notification
+      const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
+      const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
+      
+      if (botToken && chatId) {
+        const typeLabel = data.type === 'FLOWING_SAND' ? '流麻' : '截圖';
+        const message = `🎉 收到新的委託訂單！
+
+👤 客戶暱稱：${data.clientName}
+🆔 委託 ID：${data.clientId}
+🎨 委託類型：${typeLabel}
+💰 委託金額：${data.price ? '$' + data.price : '未填寫'}
+📅 截止日期：${data.deadline || '未填寫'}
+
+📞 聯絡方式：
+${data.contactInfo || '無'}
+
+📝 客戶需求備註：
+${data.description || '無'}`;
+
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: message,
+          }),
+        }).catch(err => console.error("Telegram notification failed:", err));
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, `commissions/${uniqueDocId}`);
     }
@@ -209,6 +249,17 @@ export default function App() {
     try {
       await updateDoc(doc(db, 'commissions', id), {
         productionNote: note,
+        updatedAt: Date.now()
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `commissions/${id}`);
+    }
+  };
+
+  const handleUpdateDeliveryUrl = async (id: string, url: string) => {
+    try {
+      await updateDoc(doc(db, 'commissions', id), {
+        deliveryUrl: url,
         updatedAt: Date.now()
       });
     } catch (error) {
@@ -279,6 +330,7 @@ export default function App() {
         onUpdateStatus={handleUpdateStatus}
         onUpdateProductionNote={handleUpdateProductionNote}
         onUpdateDeadline={handleUpdateDeadline}
+        onUpdateDeliveryUrl={handleUpdateDeliveryUrl}
       />
     );
   };
@@ -286,6 +338,12 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F9F5F0] text-[#5C4033] font-sans p-4 md:p-8">
       <main className="max-w-2xl mx-auto pb-20 pt-4">
+        {globalError && (
+          <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100 flex items-center gap-2 font-bold animate-in slide-in-from-top duration-300">
+            <WifiOff size={20} />
+            {globalError}
+          </div>
+        )}
         {renderMainContent()}
       </main>
 

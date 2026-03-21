@@ -279,7 +279,22 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose, onSubmit, initialTyp
       }, 2000);
     } catch (err: any) {
       console.error(err);
-      setError("發送失敗，請檢查網路連線。");
+      let errorMessage = "發送失敗，請檢查網路連線。";
+      if (err instanceof Error) {
+        try {
+          const errInfo = JSON.parse(err.message);
+          if (errInfo.error && errInfo.error.includes('Missing or insufficient permissions')) {
+            errorMessage = "發送失敗：權限不足。請管理員檢查 Firebase Firestore 的安全性規則 (Security Rules) 是否允許未登入使用者新增資料。";
+          } else if (errInfo.error) {
+            errorMessage = `發送失敗：${errInfo.error}`;
+          } else {
+            errorMessage = `發送失敗：${err.message}`;
+          }
+        } catch (e) {
+          errorMessage = `發送失敗：${err.message}`;
+        }
+      }
+      setError(errorMessage);
       setIsSubmitting(false);
     }
   };
