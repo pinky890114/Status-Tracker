@@ -53,6 +53,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<'commissions' | 'galleries'>('commissions');
   const [selectedGalleryId, setSelectedGalleryId] = useState<string>(GALLERY_PRODUCTS[0].id);
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'FLOWING_SAND' | 'SCREENSHOT'>('ALL');
+  const [sortBy, setSortBy] = useState<'deadline' | 'createdAt'>('deadline');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingNoteText, setEditingNoteText] = useState<string>('');
   const [editingDeadlineId, setEditingDeadlineId] = useState<string | null>(null);
@@ -62,17 +63,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // For single-user mode, we show ALL commissions regardless of ownerId
   const filteredCommissions = commissions.filter(c => typeFilter === 'ALL' || c.type === typeFilter);
 
-  // Sort: Deadline (ascending, nearest first), then Newest (by updatedAt) first
+  // Sort logic based on sortBy state
   filteredCommissions.sort((a, b) => {
-    if (a.deadline && b.deadline) {
-      if (a.deadline === b.deadline) {
-        return (b.updatedAt || 0) - (a.updatedAt || 0);
+    if (sortBy === 'deadline') {
+      if (a.deadline && b.deadline) {
+        if (a.deadline === b.deadline) {
+          return (b.createdAt || b.updatedAt || 0) - (a.createdAt || a.updatedAt || 0);
+        }
+        return a.deadline.localeCompare(b.deadline);
       }
-      return a.deadline.localeCompare(b.deadline);
+      if (a.deadline) return -1; // a has deadline, b doesn't -> a comes first
+      if (b.deadline) return 1;  // b has deadline, a doesn't -> b comes first
+      return (b.createdAt || b.updatedAt || 0) - (a.createdAt || a.updatedAt || 0);
+    } else {
+      // Sort by createdAt (newest first)
+      return (b.createdAt || b.updatedAt || 0) - (a.createdAt || a.updatedAt || 0);
     }
-    if (a.deadline) return -1; // a has deadline, b doesn't -> a comes first
-    if (b.deadline) return 1;  // b has deadline, a doesn't -> b comes first
-    return (b.updatedAt || 0) - (a.updatedAt || 0);
   });
 
   const handleAddSubmit = async (data: CommissionFormData) => {
@@ -156,37 +162,52 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           )}
 
           {/* Filter Bar */}
-          <div className="flex gap-3 mb-5">
-            <button
-              onClick={() => setTypeFilter('ALL')}
-              className={`px-5 py-2.5 rounded-xl text-base font-bold transition-colors ${
-                typeFilter === 'ALL'
-                  ? 'bg-[#BC4A3C] text-white shadow-md'
-                  : 'bg-white text-[#8B5E3C] border border-[#E6DCC3] hover:bg-[#F9F5F0]'
-              }`}
-            >
-              全部委託
-            </button>
-            <button
-              onClick={() => setTypeFilter('FLOWING_SAND')}
-              className={`px-5 py-2.5 rounded-xl text-base font-bold transition-colors ${
-                typeFilter === 'FLOWING_SAND'
-                  ? 'bg-[#BC4A3C] text-white shadow-md'
-                  : 'bg-white text-[#8B5E3C] border border-[#E6DCC3] hover:bg-[#F9F5F0]'
-              }`}
-            >
-              流麻委託
-            </button>
-            <button
-              onClick={() => setTypeFilter('SCREENSHOT')}
-              className={`px-5 py-2.5 rounded-xl text-base font-bold transition-colors ${
-                typeFilter === 'SCREENSHOT'
-                  ? 'bg-[#BC4A3C] text-white shadow-md'
-                  : 'bg-white text-[#8B5E3C] border border-[#E6DCC3] hover:bg-[#F9F5F0]'
-              }`}
-            >
-              截圖委託
-            </button>
+          <div className="flex flex-col sm:flex-row justify-between gap-3 mb-5">
+            <div className="flex gap-3">
+              <button
+                onClick={() => setTypeFilter('ALL')}
+                className={`px-5 py-2.5 rounded-xl text-base font-bold transition-colors ${
+                  typeFilter === 'ALL'
+                    ? 'bg-[#BC4A3C] text-white shadow-md'
+                    : 'bg-white text-[#8B5E3C] border border-[#E6DCC3] hover:bg-[#F9F5F0]'
+                }`}
+              >
+                全部委託
+              </button>
+              <button
+                onClick={() => setTypeFilter('FLOWING_SAND')}
+                className={`px-5 py-2.5 rounded-xl text-base font-bold transition-colors ${
+                  typeFilter === 'FLOWING_SAND'
+                    ? 'bg-[#BC4A3C] text-white shadow-md'
+                    : 'bg-white text-[#8B5E3C] border border-[#E6DCC3] hover:bg-[#F9F5F0]'
+                }`}
+              >
+                流麻委託
+              </button>
+              <button
+                onClick={() => setTypeFilter('SCREENSHOT')}
+                className={`px-5 py-2.5 rounded-xl text-base font-bold transition-colors ${
+                  typeFilter === 'SCREENSHOT'
+                    ? 'bg-[#BC4A3C] text-white shadow-md'
+                    : 'bg-white text-[#8B5E3C] border border-[#E6DCC3] hover:bg-[#F9F5F0]'
+                }`}
+              >
+                截圖委託
+              </button>
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2 bg-white border border-[#E6DCC3] rounded-xl px-4 py-2 shadow-sm">
+              <span className="text-sm font-bold text-[#A67C52]">排序方式:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'deadline' | 'createdAt')}
+                className="bg-transparent text-[#5C4033] font-bold text-sm outline-none cursor-pointer"
+              >
+                <option value="deadline">按截稿日期 (最近優先)</option>
+                <option value="createdAt">按建立日期 (最新優先)</option>
+              </select>
+            </div>
           </div>
 
           {/* List of commissions */}
