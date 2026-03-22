@@ -27,7 +27,6 @@ export const STEPS: Record<CommissionType, Step[]> = {
   ],
   SCREENSHOT: [
     { label: '申請中', sub: '委託申請已提交，等待審核' },
-    { label: '待付款', sub: '等待客戶完成訂金支付' },
     { label: '已接單', sub: '已接單並溝通指定外觀、色系' },
     { label: '拍攝中', sub: '正在開號拍攝期間' },
     { label: '檔案確認', sub: '確認初稿構圖外觀皆沒問題' },
