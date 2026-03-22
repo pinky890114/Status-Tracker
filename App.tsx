@@ -260,6 +260,17 @@ ${data.description || '無'}`;
     }
   };
 
+  const handleUpdateCommission = async (id: string, data: CommissionFormData) => {
+    try {
+      await updateDoc(doc(db, 'commissions', id), {
+        ...data,
+        updatedAt: Date.now()
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `commissions/${id}`);
+    }
+  };
+
   const handleUpdateStatus = async (id: string, newStatus: number) => {
     try {
       await updateDoc(doc(db, 'commissions', id), {
@@ -353,6 +364,7 @@ ${data.description || '無'}`;
         onLogout={handleAdminLogout}
         onBackToClient={handleBackToClient}
         onAdd={handleAddCommission}
+        onUpdate={handleUpdateCommission}
         onDelete={handleDelete}
         onUpdateStatus={handleUpdateStatus}
         onUpdateProductionNote={handleUpdateProductionNote}

@@ -45,6 +45,7 @@ export interface CommissionFormData {
   description?: string;
   price?: number;
   productionNote?: string;
+  deliveryUrl?: string;
 }
 
 export interface GalleryImage {

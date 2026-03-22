@@ -1,24 +1,28 @@
 import React, { useState } from 'react';
 import { X, Loader2, AlertCircle } from 'lucide-react';
-import { AdminUser, CommissionFormData, CommissionType } from '../types';
+import { AdminUser, CommissionFormData, CommissionType, Commission } from '../types';
 import { STEPS } from '../constants';
 
 interface CommissionFormProps {
   currentAdmin: AdminUser;
   onClose: () => void;
   onSubmit: (data: CommissionFormData) => Promise<void>;
+  initialData?: Commission;
 }
 
-const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, onSubmit }) => {
+const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, onSubmit, initialData }) => {
   const [formData, setFormData] = useState<CommissionFormData>({
-    clientId: '',
-    clientName: '',
-    title: '',
-    type: 'FLOWING_SAND',
-    status: 0,
-    note: '',
-    price: 0,
-    deadline: ''
+    clientId: initialData?.clientId || '',
+    clientName: initialData?.clientName || '',
+    title: initialData?.title || '',
+    type: initialData?.type || 'FLOWING_SAND',
+    status: initialData?.status || 0,
+    note: initialData?.note || '',
+    price: initialData?.price || 0,
+    deadline: initialData?.deadline || '',
+    productionNote: initialData?.productionNote || '',
+    contactInfo: initialData?.contactInfo || '',
+    deliveryUrl: initialData?.deliveryUrl || ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +32,6 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
     setError(null);
     
     // Validate inputs
-    // Fix: Handle optional clientId with fallback
     const trimmedId = (formData.clientId || '').trim();
     const trimmedName = formData.clientName.trim();
     
@@ -56,7 +59,7 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
       // If successful, the parent component handles closing
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "新增失敗，請檢查網路或稍後再試。");
+      setError(err.message || "提交失敗，請檢查網路或稍後再試。");
       setIsSubmitting(false);
     }
   };
@@ -64,7 +67,9 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
   return (
     <div className="bg-white p-6 rounded-2xl border-2 border-[#E6DCC3] shadow-xl mb-8 animate-in slide-in-from-top-4 relative">
       <div className="flex justify-between items-center mb-6">
-          <h3 className="font-bold text-lg text-[#5C4033]">建立由「{currentAdmin.name}」老師負責的委託</h3>
+          <h3 className="font-bold text-lg text-[#5C4033]">
+            {initialData ? '編輯委託' : `建立由「${currentAdmin.name}」老師負責的委託`}
+          </h3>
           <button 
             type="button"
             onClick={onClose} 

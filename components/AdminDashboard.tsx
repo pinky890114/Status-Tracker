@@ -14,6 +14,7 @@ interface AdminDashboardProps {
   onLogout: () => void;
   onBackToClient: () => void;
   onAdd: (data: CommissionFormData) => Promise<void>;
+  onUpdate: (id: string, data: CommissionFormData) => Promise<void>;
   onDelete: (id: string) => void;
   onUpdateStatus: (id: string, newStatus: number) => void;
   onUpdateProductionNote: (id: string, note: string) => void;
@@ -48,6 +49,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onLogout, 
   onBackToClient,
   onAdd, 
+  onUpdate,
   onDelete, 
   onUpdateStatus,
   onUpdateProductionNote,
@@ -55,6 +57,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateDeliveryUrl
 }) => {
   const [isAdding, setIsAdding] = useState(false);
+  const [editingCommission, setEditingCommission] = useState<Commission | null>(null);
   const [activeTab, setActiveTab] = useState<'commissions' | 'galleries' | 'revenue'>('commissions');
   const [selectedGalleryId, setSelectedGalleryId] = useState<string>(GALLERY_PRODUCTS[0].id);
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'FLOWING_SAND' | 'SCREENSHOT'>('ALL');
@@ -96,6 +99,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleAddSubmit = async (data: CommissionFormData) => {
     await onAdd(data);
     setIsAdding(false);
+  };
+
+  const handleEditSubmit = async (data: CommissionFormData) => {
+    if (editingCommission) {
+      await onUpdate(editingCommission.id, data);
+      setEditingCommission(null);
+    }
   };
 
   return (
@@ -191,6 +201,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               currentAdmin={currentAdmin} 
               onClose={() => setIsAdding(false)} 
               onSubmit={handleAddSubmit} 
+            />
+          )}
+
+          {editingCommission && (
+            <CommissionForm 
+              currentAdmin={currentAdmin} 
+              initialData={editingCommission}
+              onClose={() => setEditingCommission(null)} 
+              onSubmit={handleEditSubmit} 
             />
           )}
 
@@ -297,6 +316,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     {item.status === 0 && item.description && (
                         <span className="bg-[#BC4A3C] text-white text-xs px-2.5 py-1 rounded-full font-bold">新申請</span>
                     )}
+                    {/* Edit Button */}
+                    <button
+                      onClick={() => setEditingCommission(item)}
+                      className="p-1.5 text-[#A67C52] hover:bg-[#F9F5F0] rounded-lg transition-colors"
+                      title="編輯委託"
+                    >
+                      <Edit2 size={18} />
+                    </button>
                   </div>
                   {item.title && (
                     <div className="text-sm font-bold text-[#8B5E3C] mt-1 bg-[#F9F5F0] px-2 py-0.5 rounded w-fit">
