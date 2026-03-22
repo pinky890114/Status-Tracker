@@ -23,7 +23,6 @@ export const STEPS: Record<CommissionType, Step[]> = {
     { label: '等待素材到貨', sub: '等待圖面送印與素材到貨' },
     { label: '實體製作中', sub: '努力照燈與調色' },
     { label: '已完成', sub: '流麻已完成並準備寄出' },
-    { label: '待付款', sub: '等待尾款支付' },
     { label: '已交付', sub: '委託已交付並結案' }
   ],
   SCREENSHOT: [
