@@ -148,7 +148,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <LogOut size={20} className="group-hover:scale-110 transition-transform" />
           </button>
           <button 
-            onClick={() => { setActiveTab('commissions'); setIsAdding(true); }}
+            onClick={() => { setActiveTab('commissions'); setIsAdding(true); setEditingCommission(null); }}
             className="flex items-center gap-2 text-base bg-[#BC4A3C] text-white px-6 py-3 rounded-xl hover:bg-[#A33E32] transition-all shadow-md shadow-[#BC4A3C]/20 font-bold"
           >
             <Plus size={20} /> 建立委託
@@ -206,6 +206,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           {editingCommission && (
             <CommissionForm 
+              key={editingCommission.id}
               currentAdmin={currentAdmin} 
               initialData={editingCommission}
               onClose={() => setEditingCommission(null)} 
@@ -318,7 +319,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     )}
                     {/* Edit Button */}
                     <button
-                      onClick={() => setEditingCommission(item)}
+                      onClick={() => {
+                        setEditingCommission(item);
+                        setIsAdding(false);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
                       className="p-1.5 text-[#A67C52] hover:bg-[#F9F5F0] rounded-lg transition-colors"
                       title="編輯委託"
                     >

@@ -156,8 +156,8 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
              disabled={isSubmitting}
              className="w-full border-2 border-[#E6DCC3] bg-[#F9F5F0] focus:bg-white focus:border-[#A67C52] rounded-xl p-2.5 text-sm transition-all outline-none font-medium disabled:opacity-50 text-[#5C4033]"
              placeholder="例如: 1200"
-             value={formData.price || ''}
-             onChange={e => setFormData({...formData, price: e.target.value ? parseInt(e.target.value) : undefined})}
+             value={formData.price ?? ''}
+             onChange={e => setFormData({...formData, price: e.target.value ? parseInt(e.target.value) : 0})}
            />
         </div>
 
