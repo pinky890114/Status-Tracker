@@ -15,6 +15,7 @@ export const COMMISSION_TYPES: Record<CommissionType, string> = {
 
 export const STEPS: Record<CommissionType, Step[]> = {
   FLOWING_SAND: [
+    { label: '申請中', sub: '委託申請已提交，等待審核' },
     { label: '待付款', sub: '等待客戶完成訂金支付' },
     { label: '已接單', sub: '已接單並討論需求' },
     { label: '拍攝中', sub: '正在拍攝流麻素材並進行圖面分層' },
@@ -25,12 +26,13 @@ export const STEPS: Record<CommissionType, Step[]> = {
     { label: '已交付', sub: '委託已交付並結案' }
   ],
   SCREENSHOT: [
+    { label: '申請中', sub: '委託申請已提交，等待審核' },
+    { label: '待付款', sub: '等待客戶完成訂金支付' },
     { label: '已接單', sub: '已接單並溝通指定外觀、色系' },
     { label: '拍攝中', sub: '正在開號拍攝期間' },
     { label: '檔案確認', sub: '確認初稿構圖外觀皆沒問題' },
     { label: '修圖中', sub: '正在進行調色與後期' },
     { label: '已完稿', sub: '檔案已完成並上傳雲端' },
-    { label: '待付款', sub: '等待客戶完成尾款支付' },
     { label: '已交付', sub: '委託已交付並結案' }
   ]
 };

@@ -221,14 +221,9 @@ export default function App() {
     try {
       await setDoc(doc(db, 'commissions', uniqueDocId), newCommission);
       
-      // Send Telegram Notification
-      const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
-      const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
-      
-      if (botToken && chatId) {
-        console.log("Attempting to send Telegram notification...");
-        const typeLabel = data.type === 'FLOWING_SAND' ? '流麻' : '截圖';
-        const message = `🎉 收到新的委託訂單！
+      // Send Telegram Notification via Server-side API (more secure and reliable)
+      const typeLabel = data.type === 'FLOWING_SAND' ? '流麻' : '截圖';
+      const message = `🎉 收到新的委託訂單！
 ${data.title ? `📌 委託標題：${data.title}\n` : ''}
 👤 客戶暱稱：${data.clientName}
 🆔 委託 ID：${data.clientId}
@@ -242,27 +237,23 @@ ${data.contactInfo || '無'}
 📝 客戶需求備註：
 ${data.description || '無'}`;
 
-        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      try {
+        const response = await fetch('/api/notify', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            chat_id: chatId,
-            text: message,
-          }),
-        })
-        .then(res => {
-          if (!res.ok) {
-            return res.json().then(err => {
-              console.error("Telegram API error:", err);
-            });
-          }
-          console.log("Telegram notification sent successfully!");
-        })
-        .catch(err => console.error("Telegram fetch failed:", err));
-      } else {
-        console.warn("Telegram Bot Token or Chat ID is missing. Please set VITE_TELEGRAM_BOT_TOKEN and VITE_TELEGRAM_CHAT_ID in environment variables.");
+          body: JSON.stringify({ message }),
+        });
+        
+        if (!response.ok) {
+          const errData = await response.json();
+          console.error("Telegram notification failed (via server):", errData);
+        } else {
+          console.log("Telegram notification sent successfully (via server)!");
+        }
+      } catch (fetchErr) {
+        console.error("Telegram notification error (via server):", fetchErr);
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, `commissions/${uniqueDocId}`);

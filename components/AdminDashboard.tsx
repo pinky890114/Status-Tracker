@@ -59,6 +59,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [selectedGalleryId, setSelectedGalleryId] = useState<string>(GALLERY_PRODUCTS[0].id);
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'FLOWING_SAND' | 'SCREENSHOT'>('ALL');
   const [sortBy, setSortBy] = useState<'deadline' | 'createdAt'>('deadline');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingNoteText, setEditingNoteText] = useState<string>('');
   const [editingDeadlineId, setEditingDeadlineId] = useState<string | null>(null);
@@ -68,7 +69,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // For single-user mode, we show ALL commissions regardless of ownerId
-  const filteredCommissions = commissions.filter(c => typeFilter === 'ALL' || c.type === typeFilter);
+  const filteredCommissions = commissions.filter(c => {
+    const matchesType = typeFilter === 'ALL' || c.type === typeFilter;
+    const matchesStatus = statusFilter === 'ALL' || STEPS[c.type][c.status].label === statusFilter;
+    return matchesType && matchesStatus;
+  });
 
   // Sort logic based on sortBy state
   filteredCommissions.sort((a, b) => {
@@ -224,17 +229,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
             </div>
 
-            {/* Sort Dropdown */}
-            <div className="flex items-center gap-2 bg-white border border-[#E6DCC3] rounded-xl px-4 py-2 shadow-sm">
-              <span className="text-sm font-bold text-[#A67C52]">排序方式:</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'deadline' | 'createdAt')}
-                className="bg-transparent text-[#5C4033] font-bold text-sm outline-none cursor-pointer"
-              >
-                <option value="deadline">按截稿日期 (最近優先)</option>
-                <option value="createdAt">按建立日期 (最新優先)</option>
-              </select>
+            <div className="flex flex-wrap gap-3">
+              {/* Status Filter Dropdown */}
+              <div className="flex items-center gap-2 bg-white border border-[#E6DCC3] rounded-xl px-4 py-2 shadow-sm">
+                <span className="text-sm font-bold text-[#A67C52]">進度篩選:</span>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="bg-transparent text-[#5C4033] font-bold text-sm outline-none cursor-pointer"
+                >
+                  <option value="ALL">全部進度</option>
+                  {/* Get unique labels from both types */}
+                  {Array.from(new Set([
+                    ...STEPS.FLOWING_SAND.map(s => s.label),
+                    ...STEPS.SCREENSHOT.map(s => s.label)
+                  ])).map(label => (
+                    <option key={label} value={label}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="flex items-center gap-2 bg-white border border-[#E6DCC3] rounded-xl px-4 py-2 shadow-sm">
+                <span className="text-sm font-bold text-[#A67C52]">排序方式:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'deadline' | 'createdAt')}
+                  className="bg-transparent text-[#5C4033] font-bold text-sm outline-none cursor-pointer"
+                >
+                  <option value="deadline">按截稿日期 (最近優先)</option>
+                  <option value="createdAt">按建立日期 (最新優先)</option>
+                </select>
+              </div>
             </div>
           </div>
 
