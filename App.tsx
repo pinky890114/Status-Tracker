@@ -238,22 +238,33 @@ ${data.contactInfo || '無'}
 ${data.description || '無'}`;
 
       try {
-        const response = await fetch('/api/notify', {
+        const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
+        const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
+
+        if (!botToken || !chatId) {
+          console.warn("Telegram config missing, skipping notification.");
+          return;
+        }
+
+        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ message }),
+          body: JSON.stringify({ 
+            chat_id: chatId,
+            text: message 
+          }),
         });
         
         if (!response.ok) {
           const errData = await response.json();
-          console.error("Telegram notification failed (via server):", errData);
+          console.error("Telegram notification failed:", errData);
         } else {
-          console.log("Telegram notification sent successfully (via server)!");
+          console.log("Telegram notification sent successfully!");
         }
       } catch (fetchErr) {
-        console.error("Telegram notification error (via server):", fetchErr);
+        console.error("Telegram notification error:", fetchErr);
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, `commissions/${uniqueDocId}`);

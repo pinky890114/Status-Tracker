@@ -24,6 +24,10 @@ async function startServer() {
     const botToken = process.env.TELEGRAM_BOT_TOKEN || process.env.VITE_TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID || process.env.VITE_TELEGRAM_CHAT_ID;
 
+    console.log("Telegram Notify Request Received.");
+    console.log("Bot Token exists:", !!botToken);
+    console.log("Chat ID exists:", !!chatId);
+
     if (!botToken || !chatId) {
       console.error("Telegram config missing on server:", { hasToken: !!botToken, hasChatId: !!chatId });
       return res.status(500).json({ error: "Telegram configuration missing on server." });
