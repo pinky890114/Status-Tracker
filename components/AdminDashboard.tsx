@@ -73,15 +73,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // For single-user mode, we show ALL commissions regardless of ownerId
   const filteredCommissions = commissions.filter(c => {
+    const statusIdx = Math.min(c.status, STEPS[c.type].length - 1);
     const matchesType = typeFilter === 'ALL' || c.type === typeFilter;
-    const matchesStatus = statusFilter === 'ALL' || STEPS[c.type][c.status].label === statusFilter;
+    const matchesStatus = statusFilter === 'ALL' || STEPS[c.type][statusIdx].label === statusFilter;
     return matchesType && matchesStatus;
   });
 
   // Sort logic based on sortBy state
   filteredCommissions.sort((a, b) => {
-    const aIsDelivered = STEPS[a.type][a.status].label === '已交付';
-    const bIsDelivered = STEPS[b.type][b.status].label === '已交付';
+    const aStatusIdx = Math.min(a.status, STEPS[a.type].length - 1);
+    const bStatusIdx = Math.min(b.status, STEPS[b.type].length - 1);
+    const aIsDelivered = STEPS[a.type][aStatusIdx].label === '已交付';
+    const bIsDelivered = STEPS[b.type][bStatusIdx].label === '已交付';
 
     // Delivered items always go to the bottom
     if (aIsDelivered && !bIsDelivered) return 1;
@@ -562,8 +565,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             <div className="flex flex-col gap-2">
               <div className="flex justify-between text-sm font-bold text-[#A67C52] mb-1 px-1 uppercase tracking-tighter">
-                <span>目前進度：{STEPS[item.type][item.status].label}</span>
-                <span className="text-[#BC4A3C] font-bold text-base">{Math.round(((item.status + 1)/STEPS[item.type].length)*100)}%</span>
+                <span>目前進度：{STEPS[item.type][Math.min(item.status, STEPS[item.type].length - 1)].label}</span>
+                <span className="text-[#BC4A3C] font-bold text-base">{Math.round(((Math.min(item.status, STEPS[item.type].length - 1) + 1)/STEPS[item.type].length)*100)}%</span>
               </div>
               <input 
                 type="range"

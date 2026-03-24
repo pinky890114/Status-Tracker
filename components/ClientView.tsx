@@ -31,8 +31,10 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, i
     
     // Sort results: '已交付' (delivered) items go to the bottom
     results.sort((a, b) => {
-      const aIsDelivered = STEPS[a.type][a.status].label === '已交付';
-      const bIsDelivered = STEPS[b.type][b.status].label === '已交付';
+      const aStatusIdx = Math.min(a.status, STEPS[a.type].length - 1);
+      const bStatusIdx = Math.min(b.status, STEPS[b.type].length - 1);
+      const aIsDelivered = STEPS[a.type][aStatusIdx].label === '已交付';
+      const bIsDelivered = STEPS[b.type][bStatusIdx].label === '已交付';
       
       if (aIsDelivered && !bIsDelivered) return 1;
       if (!aIsDelivered && bIsDelivered) return -1;
@@ -232,7 +234,7 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, i
                   <p className="text-[10px] font-bold text-[#D6C0B3] uppercase tracking-widest mb-2">目前狀態</p>
                   <div className="bg-[#F9F5F0] px-4 py-3 rounded-2xl border border-[#E6DCC3] shadow-sm whitespace-nowrap">
                     <p className="text-lg md:text-xl font-bold text-[#BC4A3C] leading-none">
-                      {STEPS[result.type][result.status].label}
+                      {STEPS[result.type][Math.min(result.status, STEPS[result.type].length - 1)].label}
                     </p>
                   </div>
                 </div>

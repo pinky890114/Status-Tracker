@@ -141,7 +141,7 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
           <select 
             disabled={isSubmitting}
             className="w-full border-2 border-[#E6DCC3] bg-[#F9F5F0] focus:bg-white focus:border-[#A67C52] rounded-xl p-2.5 text-sm transition-all outline-none font-medium disabled:opacity-50 text-[#5C4033]"
-            value={formData.status}
+            value={Math.min(formData.status, STEPS[formData.type].length - 1)}
             onChange={e => setFormData({...formData, status: parseInt(e.target.value)})}
           >
             {STEPS[formData.type].map((s, i) => <option key={i} value={i}>{s.label}</option>)}
