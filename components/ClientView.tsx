@@ -28,6 +28,19 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, i
     if (!searchNickname.trim()) return;
     setHasSearched(true);
     const results = commissions.filter(c => c.clientName.toLowerCase().includes(searchNickname.trim().toLowerCase()));
+    
+    // Sort results: '已交付' (delivered) items go to the bottom
+    results.sort((a, b) => {
+      const aIsDelivered = STEPS[a.type][a.status].label === '已交付';
+      const bIsDelivered = STEPS[b.type][b.status].label === '已交付';
+      
+      if (aIsDelivered && !bIsDelivered) return 1;
+      if (!aIsDelivered && bIsDelivered) return -1;
+      
+      // Sort by newest first for the rest
+      return (b.createdAt || b.updatedAt || 0) - (a.createdAt || a.updatedAt || 0);
+    });
+    
     setSearchResults(results);
   };
 

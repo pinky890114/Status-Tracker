@@ -80,6 +80,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Sort logic based on sortBy state
   filteredCommissions.sort((a, b) => {
+    const aIsDelivered = STEPS[a.type][a.status].label === '已交付';
+    const bIsDelivered = STEPS[b.type][b.status].label === '已交付';
+
+    // Delivered items always go to the bottom
+    if (aIsDelivered && !bIsDelivered) return 1;
+    if (!aIsDelivered && bIsDelivered) return -1;
+
     if (sortBy === 'deadline') {
       if (a.deadline && b.deadline) {
         if (a.deadline === b.deadline) {
