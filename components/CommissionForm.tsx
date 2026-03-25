@@ -22,7 +22,8 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
     deadline: initialData?.deadline || '',
     productionNote: initialData?.productionNote || '',
     contactInfo: initialData?.contactInfo || '',
-    deliveryUrl: initialData?.deliveryUrl || ''
+    deliveryUrl: initialData?.deliveryUrl || '',
+    description: initialData?.description || ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -173,6 +174,17 @@ const CommissionForm: React.FC<CommissionFormProps> = ({ currentAdmin, onClose, 
            />
         </div>
 
+        <div className="col-span-2">
+          <label className="text-[10px] font-bold text-[#A67C52] block mb-1 uppercase tracking-widest">委託內容 (品項與數量)</label>
+          <textarea 
+            disabled={isSubmitting}
+            className="w-full border-2 border-[#E6DCC3] bg-[#F9F5F0] focus:bg-white focus:border-[#A67C52] rounded-xl p-2.5 text-sm transition-all outline-none font-medium disabled:opacity-50 text-[#5C4033]"
+            rows={4}
+            value={formData.description || ''}
+            onChange={e => setFormData({...formData, description: e.target.value})}
+            placeholder="例如：【選擇商品】：\n- 角色吊飾 x 1 (單價$350)"
+          />
+        </div>
         <div className="col-span-2">
           <label className="text-[10px] font-bold text-[#A67C52] block mb-1 uppercase tracking-widest">備註訊息 (客戶可見)</label>
           <textarea 

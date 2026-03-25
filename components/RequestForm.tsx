@@ -5,8 +5,11 @@ import GalleryViewer from './GalleryViewer';
 
 interface RequestFormProps {
   onClose: () => void;
+  onBack?: () => void;
   onSubmit: (data: CommissionFormData) => Promise<void>;
   initialType?: CommissionType;
+  flowingSandType?: 'JIAN_SAN' | 'YANYUN';
+  initialStep?: 0 | 1 | 2;
 }
 
 // Define Screenshot Products Configuration
@@ -49,6 +52,7 @@ const FLOWING_SAND_GALLERY = [
         id: "F_CARD",
         title: "名片流麻",
         size: "7 x 10 cm",
+        type: "JIAN_SAN",
         tiers: [
             { name: "盲盒款", price: 490 },
             { name: "指定色系", price: 600 },
@@ -60,30 +64,61 @@ const FLOWING_SAND_GALLERY = [
         id: "F_CHARM",
         title: "角色吊飾",
         size: "4 x 7 cm",
+        type: "JIAN_SAN",
         tiers: [
             { name: "盲盒款", price: 350 },
             { name: "指定色系", price: 450 },
             { name: "全客製化", price: 700 }
         ],
         icon: <Package size={48} className="opacity-50" />
+    },
+    {
+        id: "Y_SINGLE",
+        title: "單層流麻",
+        size: "13 x 7.5 cm",
+        type: "YANYUN",
+        tiers: [
+            { name: "盲盒款", price: 550 },
+            { name: "指定色系", price: 650 },
+            { name: "全客製化", price: 990 }
+        ],
+        icon: <Sparkles size={48} className="opacity-50" />
+    },
+    {
+        id: "Y_DOUBLE",
+        title: "雙層流麻",
+        size: "13 x 7.5 cm 兩層",
+        type: "YANYUN",
+        tiers: [
+            { name: "盲盒款", price: 650 },
+            { name: "指定色系", price: 750 },
+            { name: "全客製化", price: 1100 }
+        ],
+        icon: <Sparkles size={48} className="opacity-50" />
     }
 ];
 
-const SAND_PRODUCTS: Array<{ id: string, label: string, price: number, isAddon?: boolean }> = [
-  { id: 'F_CARD_BLIND', label: '名片流麻 (盲盒款)', price: 490 },
-  { id: 'F_CARD_COLOR', label: '名片流麻 (指定色系)', price: 600 },
-  { id: 'F_CARD_CUSTOM', label: '名片流麻 (全客製化)', price: 990 },
-  { id: 'F_CHARM_BLIND', label: '角色吊飾 (盲盒款)', price: 350 },
-  { id: 'F_CHARM_COLOR', label: '角色吊飾 (指定色系)', price: 450 },
-  { id: 'F_CHARM_CUSTOM', label: '角色吊飾 (全客製化)', price: 700 },
+const SAND_PRODUCTS: Array<{ id: string, label: string, price: number, isAddon?: boolean, type?: 'JIAN_SAN' | 'YANYUN' }> = [
+  { id: 'F_CARD_BLIND', label: '名片流麻 (盲盒款)', price: 490, type: 'JIAN_SAN' },
+  { id: 'F_CARD_COLOR', label: '名片流麻 (指定色系)', price: 600, type: 'JIAN_SAN' },
+  { id: 'F_CARD_CUSTOM', label: '名片流麻 (全客製化)', price: 990, type: 'JIAN_SAN' },
+  { id: 'F_CHARM_BLIND', label: '角色吊飾 (盲盒款)', price: 350, type: 'JIAN_SAN' },
+  { id: 'F_CHARM_COLOR', label: '角色吊飾 (指定色系)', price: 450, type: 'JIAN_SAN' },
+  { id: 'F_CHARM_CUSTOM', label: '角色吊飾 (全客製化)', price: 700, type: 'JIAN_SAN' },
+  { id: 'Y_SINGLE_BLIND', label: '單層流麻 (盲盒款)', price: 550, type: 'YANYUN' },
+  { id: 'Y_SINGLE_COLOR', label: '單層流麻 (指定色系)', price: 650, type: 'YANYUN' },
+  { id: 'Y_SINGLE_CUSTOM', label: '單層流麻 (全客製化)', price: 990, type: 'YANYUN' },
+  { id: 'Y_DOUBLE_BLIND', label: '雙層流麻 (盲盒款)', price: 650, type: 'YANYUN' },
+  { id: 'Y_DOUBLE_COLOR', label: '雙層流麻 (指定色系)', price: 750, type: 'YANYUN' },
+  { id: 'Y_DOUBLE_CUSTOM', label: '雙層流麻 (全客製化)', price: 1100, type: 'YANYUN' },
   { id: 'F_STAND', label: '流麻展示架', price: 20, isAddon: true },
 ];
 
-const RequestForm: React.FC<RequestFormProps> = ({ onClose, onSubmit, initialType = 'FLOWING_SAND' }) => {
+const RequestForm: React.FC<RequestFormProps> = ({ onClose, onBack, onSubmit, initialType = 'FLOWING_SAND', flowingSandType = 'JIAN_SAN', initialStep = 0 }) => {
   const isScreenshot = initialType === 'SCREENSHOT';
 
   // Steps: 0 = Guidelines, 1 = Price Menu, 2 = Form
-  const [currentStep, setCurrentStep] = useState<0 | 1 | 2>(0);
+  const [currentStep, setCurrentStep] = useState<0 | 1 | 2>(initialStep);
   const [hasAgreed, setHasAgreed] = useState(false);
 
   // State for Flowing Sand Quantities
@@ -126,7 +161,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose, onSubmit, initialTyp
       return acc + (qty * product.price);
     }, 0);
   } else {
-    totalPrice = SAND_PRODUCTS.reduce((acc, product) => {
+    totalPrice = SAND_PRODUCTS.filter(p => p.isAddon || p.type === flowingSandType).reduce((acc, product) => {
       const qty = sandItems[product.id] || 0;
       return acc + (qty * product.price);
     }, 0);
@@ -248,7 +283,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose, onSubmit, initialTyp
             }
          });
       } else {
-         SAND_PRODUCTS.forEach(p => {
+         SAND_PRODUCTS.filter(p => p.isAddon || p.type === flowingSandType).forEach(p => {
             const qty = sandItems[p.id] || 0;
             if (qty > 0) {
                itemsList.push(`- ${p.label} x ${qty} (單價$${p.price})`);
@@ -595,7 +630,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose, onSubmit, initialTyp
                 // Flowing Sand Visual Grid (As Requested)
                 <div className="grid grid-cols-1 gap-6">
                     <p className="text-[#A67C52] text-xs text-center col-span-1 font-bold">✨ 請確認您想製作的尺寸 ✨</p>
-                    {FLOWING_SAND_GALLERY.map((item, idx) => (
+                    {FLOWING_SAND_GALLERY.filter(item => item.type === flowingSandType).map((item, idx) => (
                         <div key={idx} className="group bg-[#F9F5F0] rounded-2xl overflow-hidden border border-[#E6DCC3] hover:border-[#BC4A3C] transition-all shadow-sm">
                             {/* Visual/Image Area */}
                             <div className="h-32 bg-[#F2EFE9] flex items-center justify-center relative overflow-hidden text-[#A67C52]">
@@ -644,7 +679,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose, onSubmit, initialTyp
                         <ul className="text-xs text-[#8B5E3C] space-y-2">
                             <li><strong className="text-[#BC4A3C]">【盲盒模式】</strong> 由我根據角色/主題自由發揮</li>
                             <li><strong className="text-[#BC4A3C]">【指定色系】</strong> 可指定大範圍色系，含 1 次液態對色。</li>
-                            <li><strong className="text-[#BC4A3C]">【全客製化】</strong> 從 500 多種閃粉中選搭方案討論。含 2 次液態對色，流蘇顏色、款式皆可指定。</li>
+                            <li><strong className="text-[#BC4A3C]">【全客製化】</strong> 從 500 多種閃粉中選搭方案討論。含 2 次液態對色{flowingSandType === 'JIAN_SAN' ? '，流蘇顏色、款式皆可指定。' : '。'}</li>
                         </ul>
                     </div>
 
@@ -700,7 +735,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose, onSubmit, initialTyp
         {/* Header */}
         <div className="p-6 flex justify-between items-center shrink-0 bg-gradient-to-r from-[#F9F5F0] to-[#E6DCC3]">
           <div className="flex items-center gap-3">
-            <button onClick={() => setCurrentStep(1)} className="p-1 hover:bg-white/50 rounded-lg transition-colors text-[#A67C52]">
+            <button onClick={() => initialStep === 2 ? (onBack ? onBack() : onClose()) : setCurrentStep(1)} className="p-1 hover:bg-white/50 rounded-lg transition-colors text-[#A67C52]">
                <ArrowLeft size={20} />
             </button>
             <div className="bg-white/60 p-2 rounded-xl shadow-sm">
@@ -905,7 +940,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ onClose, onSubmit, initialTyp
                ) : (
                  // --- FLOWING SAND PRODUCT LIST ---
                  <div className="space-y-3">
-                    {SAND_PRODUCTS.map(product => {
+                    {SAND_PRODUCTS.filter(p => p.isAddon || p.type === flowingSandType).map(product => {
                       const qty = sandItems[product.id] || 0;
                       const isSelected = qty > 0;
                       

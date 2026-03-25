@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Search, Sparkles, Camera, ArrowLeft, ClipboardList, ChevronRight, Image, ExternalLink } from 'lucide-react';
+import { Search, Sparkles, Camera, ArrowLeft, ClipboardList, ChevronRight, Image, ExternalLink, LayoutGrid, Image as ImageIcon } from 'lucide-react';
 import { Commission, CommissionFormData, CommissionType } from '../types';
 import { COMMISSION_TYPES, STEPS } from '../constants';
 import ProgressBar from './ProgressBar';
 import RequestForm from './RequestForm';
+import GalleryViewer from './GalleryViewer';
 
 interface ClientViewProps {
   commissions: Commission[];
@@ -11,7 +12,7 @@ interface ClientViewProps {
   isAcceptingCommissions?: boolean;
 }
 
-type ViewMode = 'MENU' | 'TRACK' | 'REQUEST' | 'PORTFOLIO';
+type ViewMode = 'MENU' | 'TRACK' | 'REQUEST' | 'PORTFOLIO' | 'FLOWING_SAND_SUBMENU' | 'YANYUN_TERMS' | 'YANYUN_STYLES';
 
 const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, isAcceptingCommissions = true }) => {
   const [mode, setMode] = useState<ViewMode>('MENU');
@@ -23,6 +24,10 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, i
 
   // Request State
   const [requestType, setRequestType] = useState<CommissionType>('FLOWING_SAND');
+  const [flowingSandType, setFlowingSandType] = useState<'JIAN_SAN' | 'YANYUN'>('JIAN_SAN');
+  
+  // Gallery State
+  const [selectedGallery, setSelectedGallery] = useState<{id: string, name: string} | null>(null);
 
   const handleSearch = () => {
     if (!searchNickname.trim()) return;
@@ -69,7 +74,7 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, i
           <div className="grid grid-cols-2 gap-4">
             {/* Button 1: Flowing Sand Commission */}
             <button 
-              onClick={() => isAcceptingCommissions && startRequest('FLOWING_SAND')}
+              onClick={() => isAcceptingCommissions && setMode('FLOWING_SAND_SUBMENU')}
               disabled={!isAcceptingCommissions}
               className={`group relative w-full aspect-square rounded-2xl shadow-xl shadow-[#A67C52]/20 overflow-hidden transition-all bg-[#F9F5F0] ${isAcceptingCommissions ? 'hover:scale-[1.02] hover:shadow-2xl cursor-pointer' : 'opacity-50 cursor-not-allowed grayscale'}`}
             >
@@ -157,6 +162,241 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, i
           </button>
         </div>
       </div>
+    );
+  }
+
+  // --- FLOWING SAND SUBMENU ---
+  if (mode === 'FLOWING_SAND_SUBMENU') {
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 pb-10">
+        <button 
+          onClick={() => setMode('MENU')}
+          className="flex items-center gap-2 text-[#A67C52] hover:text-[#5C4033] font-bold text-sm transition-colors mb-4"
+        >
+          <ArrowLeft size={16} />
+          返回首頁
+        </button>
+
+        <div className="text-center mb-8 pt-4">
+          <div className="inline-flex items-center justify-center p-3 bg-[#E6DCC3] rounded-full mb-4 text-[#8B5E3C]">
+            <Sparkles size={24} />
+          </div>
+          <h2 className="text-3xl font-bold text-[#5C4033] mb-3 tracking-wide">選擇流麻類型</h2>
+          <p className="text-[#8B5E3C] font-medium opacity-80">請選擇您要委託的遊戲項目</p>
+        </div>
+
+        <div className="max-w-md mx-auto space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <button 
+              onClick={() => {
+                setFlowingSandType('JIAN_SAN');
+                startRequest('FLOWING_SAND');
+              }}
+              className="group relative w-full aspect-square rounded-2xl shadow-xl shadow-[#A67C52]/20 overflow-hidden transition-all bg-[#F9F5F0] hover:scale-[1.02] hover:shadow-2xl cursor-pointer"
+            >
+              <div className="absolute inset-0 flex items-center justify-center flex-col bg-[#D6C0B3]/20 group-hover:bg-[#D6C0B3]/40 transition-colors">
+                 <h3 className="text-2xl font-bold text-[#5C4033] mb-2">劍三</h3>
+                 <p className="text-sm text-[#8B5E3C] font-medium">劍三專屬委託</p>
+              </div>
+            </button>
+
+            <button 
+              onClick={() => setMode('YANYUN_TERMS')}
+              className="group relative w-full aspect-square rounded-2xl shadow-xl shadow-[#A67C52]/20 overflow-hidden transition-all bg-[#F9F5F0] hover:scale-[1.02] hover:shadow-2xl cursor-pointer"
+            >
+              <div className="absolute inset-0 flex items-center justify-center flex-col bg-[#D6C0B3]/20 group-hover:bg-[#D6C0B3]/40 transition-colors">
+                 <h3 className="text-2xl font-bold text-[#5C4033] mb-2">燕雲</h3>
+                 <p className="text-sm text-[#8B5E3C] font-medium">燕雲專屬委託</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- YANYUN TERMS ---
+  if (mode === 'YANYUN_TERMS') {
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 pb-10">
+        <button 
+          onClick={() => setMode('FLOWING_SAND_SUBMENU')}
+          className="flex items-center gap-2 text-[#A67C52] hover:text-[#5C4033] font-bold text-sm transition-colors mb-4"
+        >
+          <ArrowLeft size={16} />
+          返回上一頁
+        </button>
+
+        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-xl shadow-[#A67C52]/10 border border-[#E6DCC3]">
+          <h2 className="text-2xl font-bold text-[#5C4033] mb-6 text-center">燕雲流麻委託須知</h2>
+          
+          <div className="space-y-6 text-[#5C4033] text-sm md:text-base leading-relaxed">
+            <div>
+              <h3 className="font-bold text-[#BC4A3C] mb-2 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#BC4A3C]"></span>
+                委託順序
+              </h3>
+              <p className="pl-3.5">溝通訂單內容 → 匯款排單 → 提供主業圖片 → 圖面分層 →（效果討論）→（液態對色）→ 製作流麻本體 → 賣貨便交貨</p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-[#BC4A3C] mb-2 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#BC4A3C]"></span>
+                工期說明
+              </h3>
+              <p className="pl-3.5">流麻的材料與圖面都是排單後現訂現送印，含材料等待工期約 10~40 個工作天，不接急單。</p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-[#BC4A3C] mb-2 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#BC4A3C]"></span>
+                手作痕跡
+              </h3>
+              <p className="pl-3.5">流麻為全手工製作，難免會有細微氣泡、膠痕或手工痕跡，完美主義者請三思後再委託，除臉上明顯氣泡或者邊緣縮膠嚴重不接受退貨。</p>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-[#BC4A3C] mb-2 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#BC4A3C]"></span>
+                退款政策
+              </h3>
+              <p className="pl-3.5">圖面分層確定後不接受因個人因素取消或退款。</p>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setMode('YANYUN_STYLES')}
+            className="w-full mt-8 bg-[#BC4A3C] hover:bg-[#A33E32] text-white py-4 rounded-2xl font-bold shadow-lg shadow-[#BC4A3C]/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            下一頁：款式與方案說明
+            <ChevronRight size={20} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // --- YANYUN STYLES ---
+  if (mode === 'YANYUN_STYLES') {
+    return (
+      <>
+      {selectedGallery && (
+        <GalleryViewer 
+          productId={selectedGallery.id} 
+          productName={selectedGallery.name} 
+          onClose={() => setSelectedGallery(null)} 
+        />
+      )}
+      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 pb-10">
+        <button 
+          onClick={() => setMode('YANYUN_TERMS')}
+          className="flex items-center gap-2 text-[#A67C52] hover:text-[#5C4033] font-bold text-sm transition-colors mb-4"
+        >
+          <ArrowLeft size={16} />
+          返回上一頁
+        </button>
+
+        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-xl shadow-[#A67C52]/10 border border-[#E6DCC3]">
+          <h2 className="text-2xl font-bold text-[#5C4033] mb-6 text-center">款式與方案說明</h2>
+          
+          <div className="space-y-8 text-[#5C4033] text-sm md:text-base leading-relaxed">
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="group bg-[#F9F5F0] rounded-2xl border border-[#E6DCC3] hover:border-[#BC4A3C] transition-all overflow-hidden shadow-sm flex flex-col">
+                <div className="h-32 bg-[#F2EFE9] flex items-center justify-center relative overflow-hidden text-[#A67C52] shrink-0">
+                  <Sparkles size={48} className="opacity-20" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#F9F5F0] to-transparent opacity-80" />
+                  <span className="absolute bottom-2 left-4 text-[#5C4033] font-bold text-2xl tracking-widest opacity-10 transform -translate-y-1">
+                    SINGLE
+                  </span>
+                  <button 
+                    onClick={() => setSelectedGallery({ id: 'Y_SINGLE', name: '燕雲單層流麻' })}
+                    className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]"
+                  >
+                    <span className="bg-white text-[#5C4033] px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 shadow-lg">
+                      <ImageIcon size={16} /> 查看作品集
+                    </span>
+                  </button>
+                </div>
+                <div className="p-5 flex-1 flex flex-col">
+                  <h3 className="font-bold text-lg text-[#BC4A3C] mb-4 text-center border-b border-[#E6DCC3] pb-2">單層流麻 (13x7.5cm)</h3>
+                  <ul className="space-y-3 mt-auto">
+                    <li className="flex justify-between items-center"><span className="font-medium">盲盒款</span><span className="font-bold text-[#8B5E3C]">$550</span></li>
+                    <li className="flex justify-between items-center"><span className="font-medium">指定色系</span><span className="font-bold text-[#8B5E3C]">$650</span></li>
+                    <li className="flex justify-between items-center"><span className="font-medium">全客製化</span><span className="font-bold text-[#8B5E3C]">$990</span></li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="group bg-[#F9F5F0] rounded-2xl border border-[#E6DCC3] hover:border-[#BC4A3C] transition-all overflow-hidden shadow-sm flex flex-col">
+                <div className="h-32 bg-[#F2EFE9] flex items-center justify-center relative overflow-hidden text-[#A67C52] shrink-0">
+                  <Sparkles size={48} className="opacity-20" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#F9F5F0] to-transparent opacity-80" />
+                  <span className="absolute bottom-2 left-4 text-[#5C4033] font-bold text-2xl tracking-widest opacity-10 transform -translate-y-1">
+                    DOUBLE
+                  </span>
+                  <button 
+                    onClick={() => setSelectedGallery({ id: 'Y_DOUBLE', name: '燕雲雙層流麻' })}
+                    className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]"
+                  >
+                    <span className="bg-white text-[#5C4033] px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 shadow-lg">
+                      <ImageIcon size={16} /> 查看作品集
+                    </span>
+                  </button>
+                </div>
+                <div className="p-5 flex-1 flex flex-col">
+                  <h3 className="font-bold text-lg text-[#BC4A3C] mb-4 text-center border-b border-[#E6DCC3] pb-2">雙層流麻 (13x7.5cm 兩層)</h3>
+                  <ul className="space-y-3 mt-auto">
+                    <li className="flex justify-between items-center"><span className="font-medium">盲盒款</span><span className="font-bold text-[#8B5E3C]">$650</span></li>
+                    <li className="flex justify-between items-center"><span className="font-medium">指定色系</span><span className="font-bold text-[#8B5E3C]">$750</span></li>
+                    <li className="flex justify-between items-center"><span className="font-medium">全客製化</span><span className="font-bold text-[#8B5E3C]">$1100</span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-bold text-[#BC4A3C] mb-3 text-lg">方案說明</h3>
+              <ul className="space-y-3">
+                <li className="flex gap-2">
+                  <span className="font-bold text-[#8B5E3C] shrink-0">【盲盒模式】</span>
+                  <span>由我根據角色/主題自由發揮</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-[#8B5E3C] shrink-0">【指定色系】</span>
+                  <span>可指定大範圍色系，含 1 次液態對色。</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-[#8B5E3C] shrink-0">【全客製化】</span>
+                  <span>從 500 多種閃粉中選搭方案討論。含 2 次液態對色。</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+              <h3 className="font-bold text-orange-800 mb-2 flex items-center gap-2">
+                ⚠️ 對色注意事項
+              </h3>
+              <p className="text-orange-700 text-sm">對色為「流沙油 + 亮粉」之液態效果展示。因載體與流麻殼材質不同，成品可能因光線折射產生些微視覺差異，對色僅供確認「大致效果」。</p>
+            </div>
+
+          </div>
+
+          <div className="flex flex-col gap-3 mt-8">
+            <button 
+              onClick={() => {
+                setFlowingSandType('YANYUN');
+                startRequest('FLOWING_SAND');
+              }}
+              className="w-full bg-[#BC4A3C] hover:bg-[#A33E32] text-white py-4 rounded-2xl font-bold shadow-lg shadow-[#BC4A3C]/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              前往填寫委託單
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+      </div>
+      </>
     );
   }
 
@@ -345,10 +585,14 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, i
 
   // --- REQUEST VIEW ---
   if (mode === 'REQUEST' && onRequestSubmit) {
+    const isYanyun = requestType === 'FLOWING_SAND' && flowingSandType === 'YANYUN';
     return (
       <RequestForm 
         initialType={requestType}
+        flowingSandType={flowingSandType}
+        initialStep={isYanyun ? 2 : 0}
         onClose={() => setMode('MENU')} 
+        onBack={isYanyun ? () => setMode('YANYUN_STYLES') : undefined}
         onSubmit={onRequestSubmit} 
       />
     );

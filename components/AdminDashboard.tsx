@@ -38,6 +38,8 @@ const GALLERY_PRODUCTS = [
   { id: 'S_DUO_PC', name: '雙人電腦桌布', category: '截圖' },
   { id: 'F_CARD', name: '名片流麻', category: '流麻' },
   { id: 'F_CHARM', name: '吊飾流麻', category: '流麻' },
+  { id: 'Y_SINGLE', name: '燕雲單層流麻', category: '流麻' },
+  { id: 'Y_DOUBLE', name: '燕雲雙層流麻', category: '流麻' },
   { id: 'F_CUSTOM', name: '客製化指定', category: '流麻' },
 ];
 
