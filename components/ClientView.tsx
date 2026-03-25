@@ -236,7 +236,8 @@ const ClientView: React.FC<ClientViewProps> = ({ commissions, onRequestSubmit, i
                 <span className="w-1.5 h-1.5 rounded-full bg-[#BC4A3C]"></span>
                 委託順序
               </h3>
-              <p className="pl-3.5">溝通訂單內容 → 匯款排單 → 提供主業圖片 → 圖面分層 →（效果討論）→（液態對色）→ 製作流麻本體 → 賣貨便交貨</p>
+              <p className="pl-3.5">溝通訂單內容 → 匯款排單 → 提供主頁圖片 → 圖面分層 →（效果討論）→（液態對色）→ 製作流麻本體 → 賣貨便交貨</p>
+              <p className="pl-3.5 mt-1 text-xs text-[#A67C52] font-bold">* 括號內容為訂製款才有</p>
             </div>
 
             <div>
